@@ -53,12 +53,13 @@
     grid-template-rows: repeat(var(--height), 1fr);
     width: 90vmin;
     max-width: 500px;
-    border: 1px solid #ccc;
+    border: 1px solid #ddd;
     aspect-ratio: 1 / 1;
   }
 
   .cell {
     cursor: pointer;
     aspect-ratio: 1 / 1;
+    border: 1px solid #ddd;
   }
 </style>
