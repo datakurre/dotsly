@@ -4,8 +4,8 @@
   import Arch from "./Arch.svelte";
 
   export let grid = null;
-  export let width = 16;
-  export let height = 16;
+  export let width = 32;
+  export let height = 32;
   export let selectedShape = "square";
   export let selectedColor = "#000000";
 
@@ -17,7 +17,11 @@
     if (cell && cell.shape === "arch" && cell.color === selectedColor) {
       localGrid[i] = { ...cell, rotation: (cell.rotation + 1) % 4 };
     } else {
-      localGrid[i] = { shape: selectedShape, color: selectedColor, rotation: 0 };
+      localGrid[i] = {
+        shape: selectedShape,
+        color: selectedColor,
+        rotation: 0,
+      };
     }
     localGrid = [...localGrid];
   }

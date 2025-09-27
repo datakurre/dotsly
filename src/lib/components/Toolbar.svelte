@@ -73,6 +73,10 @@
     <input type="color" bind:value={selectedColor} on:input={selectColor} />
   </div>
   <div class="image-upload">
-    <input type="file" accept="image/png, image/jpeg" on:change={handleImageUpload} />
+    <input
+      type="file"
+      accept="image/png, image/jpeg"
+      on:change={handleImageUpload}
+    />
   </div>
 </div>

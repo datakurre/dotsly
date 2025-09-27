@@ -20,10 +20,10 @@
     image.onload = () => {
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
-      canvas.width = 16;
-      canvas.height = 16;
-      ctx.drawImage(image, 0, 0, 16, 16);
-      const imageData = ctx.getImageData(0, 0, 16, 16).data;
+      canvas.width = 32;
+      canvas.height = 32;
+      ctx.drawImage(image, 0, 0, 32, 32);
+      const imageData = ctx.getImageData(0, 0, 32, 32).data;
       const newGrid = [];
       for (let i = 0; i < imageData.length; i += 4) {
         const r = imageData[i];
@@ -53,7 +53,7 @@
       const distance = Math.sqrt(
         Math.pow(r - color.r, 2) +
           Math.pow(g - color.g, 2) +
-          Math.pow(b - color.b, 2)
+          Math.pow(b - color.b, 2),
       );
       if (distance < minDistance) {
         minDistance = distance;
@@ -92,9 +92,15 @@
     on:colorSelected={handleColorSelected}
     on:imageUploaded={handleImageUploaded}
   />
-    {#if grid}
-    <DrawingBoard width={16} height={16} {selectedShape} {selectedColor} {grid} />
+  {#if grid}
+    <DrawingBoard
+      width={32}
+      height={32}
+      {selectedShape}
+      {selectedColor}
+      {grid}
+    />
   {:else}
-    <DrawingBoard width={16} height={16} {selectedShape} {selectedColor} />
+    <DrawingBoard width={32} height={32} {selectedShape} {selectedColor} />
   {/if}
 </main>
