@@ -32,9 +32,15 @@
         const idx = i / 4;
         const x = idx % width;
         const y = Math.floor(idx / width);
-        const r = imageData[i];
-        const g = imageData[i + 1];
-        const b = imageData[i + 2];
+        let r = imageData[i];
+        let g = imageData[i + 1];
+        let b = imageData[i + 2];
+        const a = imageData[i + 3];
+        if (a === 0) {
+          r = 255;
+          g = 255;
+          b = 255;
+        }
         const brightness = (r + g + b) / 3;
         let shape = mapBrightnessToShape(brightness);
         let rotation = 0;
