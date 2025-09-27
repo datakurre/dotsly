@@ -20,24 +20,6 @@
   }
 </script>
 
-<div class="container">
-  <div class="grid" style="--width: {width}; --height: {height};">
-    {#each grid as cell, i}
-      <div class="cell" role="button" tabindex="0" on:click={() => draw(i)} on:keydown={(e) => e.key === "Enter" && draw(i)}>
-        {#if cell}
-          {#if cell.shape === "square"}
-            <Square color={cell.color} />
-          {:else if cell.shape === "circle"}
-            <Circle color={cell.color} />
-          {:else if cell.shape === "arch"}
-            <Arch color={cell.color} rotation={cell.rotation} />
-          {/if}
-        {/if}
-      </div>
-    {/each}
-  </div>
-</div>
-
 <style>
   .container {
     width: 100%;
@@ -63,3 +45,27 @@
     border: 1px solid #ddd;
   }
 </style>
+
+<div class="container">
+  <div class="grid" style="--width: {width}; --height: {height};">
+    {#each grid as cell, i}
+      <div
+        class="cell"
+        role="button"
+        tabindex="0"
+        on:click={() => draw(i)}
+        on:keydown={(e) => e.key === "Enter" && draw(i)}
+      >
+        {#if cell}
+          {#if cell.shape === "square"}
+            <Square color={cell.color} />
+          {:else if cell.shape === "circle"}
+            <Circle color={cell.color} />
+          {:else if cell.shape === "arch"}
+            <Arch color={cell.color} rotation={cell.rotation} />
+          {/if}
+        {/if}
+      </div>
+    {/each}
+  </div>
+</div>

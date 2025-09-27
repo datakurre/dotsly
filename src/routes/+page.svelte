@@ -14,6 +14,14 @@
   }
 </script>
 
+<style>
+  main {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
+</style>
+
 <svelte:head>
   <title>Dotsly</title>
 </svelte:head>
@@ -25,11 +33,3 @@
   />
   <DrawingBoard width={16} height={16} {selectedShape} {selectedColor} />
 </main>
-
-<style>
-  main {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-  }
-</style>

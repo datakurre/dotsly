@@ -2,8 +2,6 @@
   export let color = "#000";
 </script>
 
-<div class="circle" style="--color: {color}"></div>
-
 <style>
   .circle {
     width: 100%;
@@ -12,3 +10,5 @@
     border-radius: 50%;
   }
 </style>
+
+<div class="circle" style="--color: {color}"></div>

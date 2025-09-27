@@ -18,23 +18,6 @@
   }
 </script>
 
-<div class="toolbar">
-  <div class="shapes">
-    <button on:click={() => selectShape("square")} class:selected={selectedShape === "square"}>
-      Square
-    </button>
-    <button on:click={() => selectShape("circle")} class:selected={selectedShape === "circle"}>
-      Circle
-    </button>
-    <button on:click={() => selectShape("arch")} class:selected={selectedShape === "arch"}>
-      Arch
-    </button>
-  </div>
-  <div class="colors">
-    <input type="color" bind:value={selectedColor} on:input={selectColor} />
-  </div>
-</div>
-
 <style>
   .toolbar {
     display: flex;
@@ -52,3 +35,29 @@
     background-color: #eee;
   }
 </style>
+
+<div class="toolbar">
+  <div class="shapes">
+    <button
+      on:click={() => selectShape("square")}
+      class:selected={selectedShape === "square"}
+    >
+      Square
+    </button>
+    <button
+      on:click={() => selectShape("circle")}
+      class:selected={selectedShape === "circle"}
+    >
+      Circle
+    </button>
+    <button
+      on:click={() => selectShape("arch")}
+      class:selected={selectedShape === "arch"}
+    >
+      Arch
+    </button>
+  </div>
+  <div class="colors">
+    <input type="color" bind:value={selectedColor} on:input={selectColor} />
+  </div>
+</div>
