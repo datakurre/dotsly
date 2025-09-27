@@ -1,0 +1,64 @@
+<script lang="ts">
+  import Square from "./Square.svelte";
+  import Circle from "./Circle.svelte";
+  import Arch from "./Arch.svelte";
+
+  export let width = 16;
+  export let height = 16;
+  export let selectedShape = "square";
+  export let selectedColor = "#000000";
+
+  let grid = Array(width * height).fill(null);
+
+  function draw(i: number) {
+    const cell = grid[i];
+    if (cell && cell.shape === "arch" && cell.color === selectedColor) {
+      grid[i] = { ...cell, rotation: (cell.rotation + 1) % 4 };
+    } else {
+      grid[i] = { shape: selectedShape, color: selectedColor, rotation: 0 };
+    }
+  }
+</script>
+
+<div class="container">
+  <div class="grid" style="--width: {width}; --height: {height};">
+    {#each grid as cell, i}
+      <div class="cell" on:click={() => draw(i)}>
+        {#if cell}
+          {#if cell.shape === "square"}
+            <Square color={cell.color} />
+          {:else if cell.shape === "circle"}
+            <Circle color={cell.color} />
+          {:else if cell.shape === "arch"}
+            <Arch color={cell.color} rotation={cell.rotation} />
+          {/if}
+        {/if}
+      </div>
+    {/each}
+  </div>
+</div>
+
+<style>
+  .container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(var(--width), 1fr);
+    grid-template-rows: repeat(var(--height), 1fr);
+    width: 90vmin;
+    max-width: 500px;
+    border: 1px solid #ccc;
+    aspect-ratio: 1 / 1;
+  }
+
+  .cell {
+    cursor: pointer;
+    aspect-ratio: 1 / 1;
+  }
+</style>
