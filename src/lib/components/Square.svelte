@@ -2,7 +2,7 @@
   export let color = "#000";
 </script>
 
-<div class="square" style="--color: {color}" />
+<div class="square" style="--color: {color}"></div>
 
 <style>
   .square {

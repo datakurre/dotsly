@@ -23,7 +23,7 @@
 <div class="container">
   <div class="grid" style="--width: {width}; --height: {height};">
     {#each grid as cell, i}
-      <div class="cell" on:click={() => draw(i)}>
+      <div class="cell" role="button" tabindex="0" on:click={() => draw(i)} on:keydown={(e) => e.key === "Enter" && draw(i)}>
         {#if cell}
           {#if cell.shape === "square"}
             <Square color={cell.color} />

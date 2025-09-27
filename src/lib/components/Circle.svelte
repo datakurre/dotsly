@@ -2,7 +2,7 @@
   export let color = "#000";
 </script>
 
-<div class="circle" style="--color: {color}" />
+<div class="circle" style="--color: {color}"></div>
 
 <style>
   .circle {
