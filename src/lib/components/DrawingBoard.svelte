@@ -3,20 +3,23 @@
   import Circle from "./Circle.svelte";
   import Arch from "./Arch.svelte";
 
+  export let grid = null;
   export let width = 16;
   export let height = 16;
   export let selectedShape = "square";
   export let selectedColor = "#000000";
 
-  let grid = Array(width * height).fill(null);
+  let localGrid;
+  $: localGrid = grid || Array(width * height).fill(null);
 
   function draw(i: number) {
-    const cell = grid[i];
+    const cell = localGrid[i];
     if (cell && cell.shape === "arch" && cell.color === selectedColor) {
-      grid[i] = { ...cell, rotation: (cell.rotation + 1) % 4 };
+      localGrid[i] = { ...cell, rotation: (cell.rotation + 1) % 4 };
     } else {
-      grid[i] = { shape: selectedShape, color: selectedColor, rotation: 0 };
+      localGrid[i] = { shape: selectedShape, color: selectedColor, rotation: 0 };
     }
+    localGrid = [...localGrid];
   }
 </script>
 
@@ -48,7 +51,7 @@
 
 <div class="container">
   <div class="grid" style="--width: {width}; --height: {height};">
-    {#each grid as cell, i}
+    {#each localGrid as cell, i}
       <div
         class="cell"
         role="button"

@@ -16,6 +16,18 @@
     selectedColor = target.value;
     dispatch("colorSelected", { color: selectedColor });
   }
+
+  function handleImageUpload(event: Event) {
+    const target = event.target as HTMLInputElement;
+    const file = target.files && target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        dispatch("imageUploaded", { src: reader.result });
+      };
+      reader.readAsDataURL(file);
+    }
+  }
 </script>
 
 <style>
@@ -59,5 +71,8 @@
   </div>
   <div class="colors">
     <input type="color" bind:value={selectedColor} on:input={selectColor} />
+  </div>
+  <div class="image-upload">
+    <input type="file" accept="image/png, image/jpeg" on:change={handleImageUpload} />
   </div>
 </div>
