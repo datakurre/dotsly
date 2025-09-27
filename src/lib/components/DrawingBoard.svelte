@@ -1,4 +1,36 @@
 <script lang="ts">
+  // Paint tool state
+  export let paintMode = false;
+
+  // Flood fill for painting adjacent blocks
+  function paint(i: number) {
+    const target = localGrid[i];
+    if (!target) return draw(i);
+    const { shape, color } = target;
+    if (shape === selectedShape && color === selectedColor) return;
+    const stack = [i];
+    const visited = new Set<number>();
+    while (stack.length) {
+      const idx = stack.pop();
+      if (idx === undefined || visited.has(idx)) continue;
+      visited.add(idx);
+      const cell = localGrid[idx];
+      if (!cell || cell.shape !== shape || cell.color !== color) continue;
+      localGrid[idx] = {
+        shape: selectedShape,
+        color: selectedColor,
+        rotation: 0,
+      };
+      // Check neighbors (left, right, up, down)
+      const x = idx % width;
+      const y = Math.floor(idx / width);
+      if (x > 0) stack.push(idx - 1);
+      if (x < width - 1) stack.push(idx + 1);
+      if (y > 0) stack.push(idx - width);
+      if (y < height - 1) stack.push(idx + width);
+    }
+    localGrid = [...localGrid];
+  }
   import Square from "./Square.svelte";
   import Circle from "./Circle.svelte";
   import Arch from "./Arch.svelte";
@@ -60,8 +92,9 @@
         class="cell"
         role="button"
         tabindex="0"
-        on:click={() => draw(i)}
-        on:keydown={(e) => e.key === "Enter" && draw(i)}
+        on:click={() => (paintMode ? paint(i) : draw(i))}
+        on:keydown={(e) =>
+          (paintMode ? paint(i) : draw(i)) && e.key === "Enter"}
       >
         {#if cell}
           {#if cell.shape === "square"}

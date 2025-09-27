@@ -5,6 +5,7 @@
   let selectedShape = "square";
   let selectedColor = "#000000";
   let grid = null;
+  let paintMode = false;
 
   function handleShapeSelected(event: CustomEvent) {
     selectedShape = event.detail.shape;
@@ -91,6 +92,7 @@
     on:shapeSelected={handleShapeSelected}
     on:colorSelected={handleColorSelected}
     on:imageUploaded={handleImageUploaded}
+    on:paintModeToggled={(e) => (paintMode = e.detail.paintMode)}
   />
   {#if grid}
     <DrawingBoard
@@ -99,8 +101,15 @@
       {selectedShape}
       {selectedColor}
       {grid}
+      {paintMode}
     />
   {:else}
-    <DrawingBoard width={32} height={32} {selectedShape} {selectedColor} />
+    <DrawingBoard
+      width={32}
+      height={32}
+      {selectedShape}
+      {selectedColor}
+      {paintMode}
+    />
   {/if}
 </main>
