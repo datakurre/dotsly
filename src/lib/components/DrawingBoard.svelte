@@ -8,7 +8,7 @@
     ColorPickedEvent,
   } from "../types";
   import ZoomPanContainer from "./ZoomPanContainer.svelte";
-  import GridComponent from "./Grid.svelte";
+  import DrawingGrid from "./Grid.svelte";
 
   const dispatch = createEventDispatcher<{
     colorPicked: ColorPickedEvent;
@@ -19,7 +19,8 @@
   export let width = 32;
   export let height = 32;
   export let selectedShape: ShapeType = "square";
-  export let selectedColor = colorPalette.length > 0 ? colorPalette[0].rgb : "#000000";
+  export let selectedColor =
+    colorPalette.length > 0 ? colorPalette[0].rgb : "#000000";
   export let paintMode = false;
   export let colorPickerMode = false;
   export let toolbarPosition: ToolbarPosition = "left";
@@ -87,7 +88,7 @@
     on:panEnd={handlePanEnd}
     let:didPan
   >
-    <GridComponent
+    <DrawingGrid
       grid={localGrid}
       {width}
       {height}

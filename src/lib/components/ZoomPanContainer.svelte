@@ -12,124 +12,126 @@
   let lastMouseY = 0;
   let didPan = false;
   let containerEl: HTMLDivElement;
-  let prevZoom = zoom;
+  let contentEl: HTMLDivElement;
 
   // Handle mouse wheel for zooming
-  function onGridWheel(e: WheelEvent) {
-    // Only zoom if ctrl is NOT pressed (let browser handle ctrl+wheel for accessibility)
-    if (e.ctrlKey) return;
+  function onWheel(e: WheelEvent) {
     e.preventDefault();
-    const zoomStep = 0.1;
-    let newZoom = zoom;
-    if (e.deltaY < 0) {
-      newZoom = Math.min(zoom + zoomStep, 5);
-    } else if (e.deltaY > 0) {
-      newZoom = Math.max(zoom - zoomStep, 0.2);
-    }
+
+    const rect = containerEl.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+
+    const zoomFactor = e.deltaY > 0 ? 0.9 : 1.1;
+    const newZoom = Math.max(0.2, Math.min(5, zoom * zoomFactor));
+
     if (newZoom !== zoom) {
+      // Adjust pan to zoom towards mouse position
+      const zoomRatio = newZoom / zoom;
+      panX = mouseX - (mouseX - panX) * zoomRatio;
+      panY = mouseY - (mouseY - panY) * zoomRatio;
+
       zoom = newZoom;
-      dispatch("zoomChanged", { zoom });
+      dispatch("zoomChanged", { zoom, panX, panY });
     }
   }
 
-  function onGridMouseDown(e: MouseEvent) {
-    if (e.button !== 0) return;
-    isPanning = true;
-    didPan = false;
-    lastMouseX = e.clientX;
-    lastMouseY = e.clientY;
-    window.addEventListener("mousemove", onGridMouseMove);
-    window.addEventListener("mouseup", onGridMouseUp);
-    e.preventDefault();
-  }
-
-  function onGridMouseMove(e: MouseEvent) {
-    if (!isPanning) return;
-    const dx = e.clientX - lastMouseX;
-    const dy = e.clientY - lastMouseY;
-    if (Math.abs(dx) > 2 || Math.abs(dy) > 2) {
-      didPan = true;
+  function onMouseDown(e: MouseEvent) {
+    // Start panning with left mouse button - we'll handle grid clicks in the Grid component
+    if (e.button === 0) {
+      isPanning = true;
+      didPan = false;
+      lastMouseX = e.clientX;
+      lastMouseY = e.clientY;
+      window.addEventListener("mousemove", onMouseMove);
+      window.addEventListener("mouseup", onMouseUp);
+      e.preventDefault();
     }
-    panX += dx;
-    panY += dy;
-    lastMouseX = e.clientX;
-    lastMouseY = e.clientY;
-    dispatch("panChanged", { panX, panY });
   }
 
-  function onGridMouseUp() {
-    isPanning = false;
-    window.removeEventListener("mousemove", onGridMouseMove);
-    window.removeEventListener("mouseup", onGridMouseUp);
-    dispatch("panEnd", { didPan });
-    // Reset didPan after a short delay to allow clicks to be processed
-    setTimeout(() => { didPan = false; }, 10);
-  }
+  function onMouseMove(e: MouseEvent) {
+    if (isPanning) {
+      const dx = e.clientX - lastMouseX;
+      const dy = e.clientY - lastMouseY;
 
-  // Keep canvas visually stable at viewport center on zoom
-  $: if (zoom !== prevZoom && containerEl) {
-    // Get container bounding rect and center
-    const container = containerEl.parentElement;
-    if (container) {
-      const crect = container.getBoundingClientRect();
-      const cx = crect.left + crect.width / 2;
-      const cy = crect.top + crect.height / 2;
-      // Compute grid center in screen coords before zoom
-      const gridRect = containerEl.getBoundingClientRect();
-      const gridCenterX = gridRect.left + gridRect.width / 2;
-      const gridCenterY = gridRect.top + gridRect.height / 2;
-      // Offset from container center to grid center
-      const dx = cx - gridCenterX;
-      const dy = cy - gridCenterY;
-      // Adjust pan so grid center stays at container center after zoom
-      panX += dx - dx * (zoom / prevZoom);
-      panY += dy - dy * (zoom / prevZoom);
+      // Lower threshold for better responsiveness
+      if (Math.abs(dx) > 1 || Math.abs(dy) > 1) {
+        didPan = true;
+      }
+
+      panX += dx;
+      panY += dy;
+      lastMouseX = e.clientX;
+      lastMouseY = e.clientY;
+
       dispatch("panChanged", { panX, panY });
     }
-    prevZoom = zoom;
   }
 
-  function handleKeydown(e: KeyboardEvent) {
-    if (e.key === " ") {
-      e.preventDefault();
-      onGridMouseDown({
-        button: 0,
-        clientX: lastMouseX,
-        clientY: lastMouseY,
-        preventDefault: () => {},
-      } as MouseEvent);
+  function onMouseUp() {
+    if (isPanning) {
+      isPanning = false;
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
+      dispatch("panEnd", { didPan });
+
+      // Reset didPan after a short delay to allow grid clicks to be processed
+      setTimeout(() => {
+        didPan = false;
+      }, 50);
     }
   }
 
-  function handleKeyup(e: KeyboardEvent) {
+  // Handle keyboard shortcuts for spacebar pan
+  function onKeyDown(e: KeyboardEvent) {
     if (e.key === " ") {
       e.preventDefault();
-      onGridMouseUp();
+      // Space bar panning is handled by changing cursor and enabling pan mode
+    }
+  }
+
+  function onKeyUp(e: KeyboardEvent) {
+    if (e.key === " ") {
+      e.preventDefault();
     }
   }
 </script>
+
+<style>
+  .zoom-pan-container {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .zoom-pan-content {
+    transform-origin: 0 0;
+    user-select: none;
+    touch-action: none;
+  }
+</style>
 
 <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
 <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
 <div
   bind:this={containerEl}
-  class="zoomable-container"
+  class="zoom-pan-container"
   role="application"
   aria-label="Zoomable and pannable container"
   tabindex="0"
-  style="transform: translate({panX}px, {panY}px) scale({zoom}); cursor: {isPanning
-    ? 'grabbing'
-    : 'grab'}; user-select: none; touch-action: none;"
-  on:mousedown={onGridMouseDown}
-  on:keydown={handleKeydown}
-  on:keyup={handleKeyup}
-  on:wheel={onGridWheel}
+  on:wheel={onWheel}
+  on:mousedown={onMouseDown}
+  on:keydown={onKeyDown}
+  on:keyup={onKeyUp}
 >
-  <slot {didPan} />
+  <div
+    bind:this={contentEl}
+    class="zoom-pan-content"
+    style="transform: translate({panX}px, {panY}px) scale({zoom}); cursor: {isPanning
+      ? 'grabbing'
+      : 'grab'};"
+  >
+    <slot {didPan} />
+  </div>
 </div>
-
-<style>
-  .zoomable-container {
-    display: contents;
-  }
-</style>

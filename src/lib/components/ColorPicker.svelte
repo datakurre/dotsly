@@ -5,7 +5,8 @@
 
   const dispatch = createEventDispatcher();
 
-  export let selectedColor = colorPalette.length > 0 ? colorPalette[0].rgb : "#000000";
+  export let selectedColor =
+    colorPalette.length > 0 ? colorPalette[0].rgb : "#000000";
 
   let colorSearch = "";
   let colorDropdownOpen = false;
@@ -72,7 +73,8 @@
               aria-label={`Select color ${color.name}`}
               style="display: flex; align-items: center; width: 100%; background: none; border: none; padding: 0; text-align: left; cursor: pointer;"
             >
-              <span class="dropdown-swatch" style="background:{color.rgb}"></span>
+              <span class="dropdown-swatch" style="background:{color.rgb}"
+              ></span>
               <span>{color.name}</span>
               <span style="margin-left:auto; color:#888; font-size:0.9em"
                 >{color.rgb}</span

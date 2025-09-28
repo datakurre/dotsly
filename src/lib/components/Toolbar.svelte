@@ -12,7 +12,8 @@
   const dispatch = createEventDispatcher();
 
   export let selectedShape = "square";
-  export let selectedColor = colorPalette.length > 0 ? colorPalette[0].rgb : "#000000";
+  export let selectedColor =
+    colorPalette.length > 0 ? colorPalette[0].rgb : "#000000";
   export let paintMode = false;
   export let colorPickerMode = false;
   export let size: number = 32;
@@ -61,21 +62,21 @@
 </script>
 
 <div class="toolbar {toolbarPosition}">
-  <ToolbarToggle 
-    bind:toolbarPosition 
-    on:positionToggled={handlePositionToggled} 
+  <ToolbarToggle
+    bind:toolbarPosition
+    on:positionToggled={handlePositionToggled}
   />
 
-  <ShapeSelector 
-    bind:selectedShape 
-    bind:quarterRotation 
+  <ShapeSelector
+    bind:selectedShape
+    bind:quarterRotation
     {selectedColor}
     on:shapeSelected={handleShapeSelected}
     on:quarterRotationChanged={handleQuarterRotationChanged}
   />
 
-  <ToolSelector 
-    bind:paintMode 
+  <ToolSelector
+    bind:paintMode
     bind:colorPickerMode
     on:paintModeToggled={handlePaintModeToggled}
     on:colorPickerModeToggled={handleColorPickerModeToggled}
@@ -83,17 +84,9 @@
     on:zoomOut={() => dispatch("zoomOut")}
   />
 
-  <ColorPicker 
-    bind:selectedColor 
-    on:colorSelected={handleColorSelected}
-  />
+  <ColorPicker bind:selectedColor on:colorSelected={handleColorSelected} />
 
-  <SizeInput 
-    bind:size 
-    on:sizeChanged={handleSizeChanged}
-  />
+  <SizeInput bind:size on:sizeChanged={handleSizeChanged} />
 
-  <ImageUpload 
-    on:imageUploaded={handleImageUploaded}
-  />
+  <ImageUpload on:imageUploaded={handleImageUploaded} />
 </div>

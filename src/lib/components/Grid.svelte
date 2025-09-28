@@ -79,7 +79,10 @@
 
   export let didPan = false;
 
-  function handleCellClick(i: number) {
+  function handleCellClick(i: number, event: MouseEvent) {
+    // Stop event propagation to prevent panning when clicking cells
+    event.stopPropagation();
+
     if (didPan) return;
     if (colorPickerMode) {
       pickColor(i);
@@ -103,31 +106,6 @@
   }
 </script>
 
-<div
-  class="grid"
-  style="--width: {width}; --height: {height};"
->
-  {#each grid as cell, i}
-    <div
-      class="cell"
-      role="button"
-      tabindex="0"
-      on:click={() => handleCellClick(i)}
-      on:keydown={(e) => handleCellKeydown(e, i)}
-    >
-      {#if cell}
-        {#if cell.shape === "square"}
-          <Square color={cell.color} />
-        {:else if cell.shape === "circle"}
-          <Circle color={cell.color} />
-        {:else if cell.shape === "quarter"}
-          <Quarter color={cell.color} rotation={cell.rotation} />
-        {/if}
-      {/if}
-    </div>
-  {/each}
-</div>
-
 <style>
   .grid {
     display: grid;
@@ -145,3 +123,25 @@
     border: 1px solid #ddd;
   }
 </style>
+
+<div class="grid" style="--width: {width}; --height: {height};">
+  {#each grid as cell, i}
+    <div
+      class="cell"
+      role="button"
+      tabindex="0"
+      on:click={(e) => handleCellClick(i, e)}
+      on:keydown={(e) => handleCellKeydown(e, i)}
+    >
+      {#if cell}
+        {#if cell.shape === "square"}
+          <Square color={cell.color} />
+        {:else if cell.shape === "circle"}
+          <Circle color={cell.color} />
+        {:else if cell.shape === "quarter"}
+          <Quarter color={cell.color} rotation={cell.rotation} />
+        {/if}
+      {/if}
+    </div>
+  {/each}
+</div>
