@@ -9,6 +9,13 @@
   let grid = null;
   let paintMode = false;
   let toolbarPosition: "left" | "top" = "left";
+  let zoom = 1;
+  function handleZoomIn() {
+    zoom = Math.min(zoom + 0.1, 3);
+  }
+  function handleZoomOut() {
+    zoom = Math.max(zoom - 0.1, 0.2);
+  }
   let colorPickerMode = false;
 
   function handleShapeSelected(event: CustomEvent) {
@@ -59,6 +66,8 @@
     on:imageUploaded={handleImageUploaded}
     on:paintModeToggled={(e) => (paintMode = e.detail.paintMode)}
     on:colorPickerModeToggled={handleColorPickerModeToggled}
+    on:zoomIn={handleZoomIn}
+    on:zoomOut={handleZoomOut}
     bind:toolbarPosition
     bind:selectedColor
   />
@@ -72,6 +81,7 @@
       {paintMode}
       {colorPickerMode}
       {toolbarPosition}
+      zoom={zoom}
       on:colorPicked={handleColorPicked}
     />
   {:else}
@@ -83,6 +93,7 @@
       {paintMode}
       {colorPickerMode}
       {toolbarPosition}
+      zoom={zoom}
       on:colorPicked={handleColorPicked}
     />
   {/if}

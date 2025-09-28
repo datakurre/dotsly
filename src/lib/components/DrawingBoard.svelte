@@ -27,9 +27,67 @@
   export let colorPickerMode = false;
   export let toolbarPosition: ToolbarPosition = "left";
 
+
   // Local state
   let localGrid: Grid;
   $: localGrid = grid || Array(width * height).fill(null);
+
+
+  // Zoom and pan state
+  export let zoom = 1;
+  let panX = 0;
+  let panY = 0;
+  let isPanning = false;
+  let lastMouseX = 0;
+  let lastMouseY = 0;
+  let gridEl: HTMLDivElement;
+
+  function onGridMouseDown(e: MouseEvent) {
+    if (e.button !== 0) return;
+    isPanning = true;
+    lastMouseX = e.clientX;
+    lastMouseY = e.clientY;
+    window.addEventListener('mousemove', onGridMouseMove);
+    window.addEventListener('mouseup', onGridMouseUp);
+    e.preventDefault();
+  }
+
+  function onGridMouseMove(e: MouseEvent) {
+    if (!isPanning) return;
+    panX += (e.clientX - lastMouseX);
+    panY += (e.clientY - lastMouseY);
+    lastMouseX = e.clientX;
+    lastMouseY = e.clientY;
+  }
+
+  function onGridMouseUp() {
+    isPanning = false;
+    window.removeEventListener('mousemove', onGridMouseMove);
+    window.removeEventListener('mouseup', onGridMouseUp);
+  }
+
+  // Keep canvas visually stable at viewport center on zoom
+  let prevZoom = zoom;
+  $: if (zoom !== prevZoom && gridEl) {
+    // Get container bounding rect and center
+    const container = gridEl.parentElement;
+    if (container) {
+      const crect = container.getBoundingClientRect();
+      const cx = crect.left + crect.width / 2;
+      const cy = crect.top + crect.height / 2;
+      // Compute grid center in screen coords before zoom
+      const gridRect = gridEl.getBoundingClientRect();
+      const gridCenterX = gridRect.left + gridRect.width / 2;
+      const gridCenterY = gridRect.top + gridRect.height / 2;
+      // Offset from container center to grid center
+      const dx = cx - gridCenterX;
+      const dy = cy - gridCenterY;
+      // Adjust pan so grid center stays at container center after zoom
+      panX += dx - dx * (zoom / prevZoom);
+      panY += dy - dy * (zoom / prevZoom);
+    }
+    prevZoom = zoom;
+  }
 
   // Flood fill for painting adjacent blocks
   function paint(i: number) {
@@ -121,7 +179,13 @@
     ? 'toolbar-left-margin'
     : 'toolbar-top-margin'}"
 >
-  <div class="grid" style="--width: {width}; --height: {height};">
+  <!-- toolbar slot removed, handled in parent -->
+  <div
+    class="grid"
+    bind:this={gridEl}
+    style="--width: {width}; --height: {height}; transform: translate({panX}px, {panY}px) scale({zoom}); cursor: {isPanning ? 'grabbing' : 'grab'}; user-select: none; touch-action: none;"
+    on:mousedown={onGridMouseDown}
+  >
     {#each localGrid as cell, i}
       <div
         class="cell"
