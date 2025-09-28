@@ -83,24 +83,9 @@
     align-items: center;
     box-sizing: border-box;
   }
-  .toolbar-left-margin {
-    margin-left: 7rem;
-  }
-  @media (max-width: 600px) {
-    .toolbar-left-margin {
-      margin-left: 0;
-    }
-  }
-  .toolbar-top-margin {
-    margin-top: 5.5rem;
-  }
 </style>
 
-<div
-  class="container {toolbarPosition === 'left'
-    ? 'toolbar-left-margin'
-    : 'toolbar-top-margin'}"
->
+<div class="container">
   <ZoomPanContainer
     {zoom}
     {panX}
