@@ -86,6 +86,11 @@
   .toolbar-left-margin {
     margin-left: 7rem;
   }
+  @media (max-width: 600px) {
+    .toolbar-left-margin {
+      margin-left: 0;
+    }
+  }
   .toolbar-top-margin {
     margin-top: 5.5rem;
   }

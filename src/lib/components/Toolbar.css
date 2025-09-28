@@ -69,6 +69,16 @@
   left: 0;
   border-right: 1px solid #e0e0e0;
   border-bottom: none;
+  transition:
+    transform 0.2s,
+    opacity 0.2s;
+  z-index: 100;
+}
+
+.toolbar.left:not(.visible) {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-100%);
 }
 
 .toolbar.top {
@@ -407,47 +417,56 @@
 }
 
 @media (max-width: 600px) {
-  .toolbar.left,
-  .toolbar.top {
-    width: 100vw !important;
-    min-width: 0 !important;
-    max-width: 100vw !important;
-    height: auto !important;
+  .toolbar.left {
+    width: 12rem !important;
+    min-width: 10rem !important;
+    max-width: 90vw !important;
+    height: 90vh !important;
     min-height: 0 !important;
-    max-height: none !important;
-    flex-direction: row !important;
-    border-right: none;
-    border-bottom: 1px solid #e0e0e0;
+    max-height: 90vh !important;
+    flex-direction: column !important;
+    border-right: 1px solid #e0e0e0;
+    border-bottom: none;
     position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 100;
+    top: 0.5rem;
+    left: 0.5rem;
+    transform: none;
+    z-index: 200;
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.15);
+    border-radius: 0.75rem;
+    opacity: 1;
+    pointer-events: auto;
+    background: #fafbfc;
   }
-
-  .toolbar.left .toolbar-toggle,
-  .toolbar.top .toolbar-toggle {
-    margin-bottom: 0;
-    margin-right: 0.5rem;
+  .toolbar.left:not(.visible) {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(-100%) scale(0.95);
   }
-
+  .toolbar-toggle {
+    position: fixed;
+    top: 0.5rem;
+    left: 0.5rem;
+    z-index: 300;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
   .shape-group,
   .tool-group,
   .colors,
   .palette2d {
-    flex-direction: row !important;
+    flex-direction: column !important;
     align-items: center !important;
-    width: auto !important;
+    width: 100% !important;
   }
-
   .shape-grid,
   .tool-grid {
     grid-template-columns: repeat(3, 1fr) !important;
     max-width: 9rem !important;
   }
-
   .image-upload {
-    margin-top: 0 !important;
-    margin-left: auto !important;
-    width: auto !important;
+    margin-top: auto !important;
+    margin-left: 0 !important;
+    width: 100% !important;
   }
 }

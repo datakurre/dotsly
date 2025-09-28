@@ -18,7 +18,8 @@
   export let colorPickerMode = false;
   export let selectMode = false;
   export let size: number = 32;
-  export let toolbarPosition: "left" | "top" = "left";
+  // Only support left position
+  let toolbarVisible = true;
   export let quarterRotation = 0;
   export let canUndo = false;
   export let canRedo = false;
@@ -71,17 +72,14 @@
     dispatch("imageUploaded", event.detail);
   }
 
-  function handlePositionToggled(event: CustomEvent) {
-    toolbarPosition = event.detail.position;
+  function handleToolbarToggle() {
+    toolbarVisible = !toolbarVisible;
   }
 </script>
 
-<div class="toolbar {toolbarPosition}">
-  <ToolbarToggle
-    bind:toolbarPosition
-    on:positionToggled={handlePositionToggled}
-  />
+<ToolbarToggle on:toggle={handleToolbarToggle} />
 
+<div class="toolbar left" class:visible={toolbarVisible}>
   <ShapeSelector
     bind:selectedShape
     bind:quarterRotation

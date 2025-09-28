@@ -144,5 +144,9 @@ export function getFilteredColorHSLs(): ColorHSL[] {
   });
 }
 
-// Export 2D palette for UI display (only colors available in sets)
-export const palette2D: ColorHSL[][] = groupAndReflow(getFilteredColorHSLs());
+// Export 2D palette for UI display (6 colors per row)
+export const palette2D: ColorHSL[][] = groupAndReflow(
+  getFilteredColorHSLs(),
+  15,
+  6,
+);
