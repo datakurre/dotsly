@@ -27,7 +27,7 @@
   export let paintMode = false;
   export let colorPickerMode = false;
   export let selectMode = false;
-  export let toolbarPosition: ToolbarPosition = "left";
+
   export let quarterRotation = 0;
   export let zoom = 1;
   export let selection: Selection = {
