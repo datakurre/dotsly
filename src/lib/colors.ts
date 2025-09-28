@@ -131,9 +131,9 @@ function getUsedColorIdsFromSets(): Set<number> {
 
 const usedColorIds = getUsedColorIdsFromSets();
 
-// Export filtered color palette (only colors available in sets)
-export const colorPalette: Color[] = parseColorsCsv(colorsCsv).filter((c) =>
-  usedColorIds.has(c.id),
+// Export filtered color palette (only colors available in sets and not containing 'Trans-Clear')
+export const colorPalette: Color[] = parseColorsCsv(colorsCsv).filter(
+  (c) => usedColorIds.has(c.id) && !c.name.includes("Trans-Clear"),
 );
 
 // Export filtered color palette with HSL values
