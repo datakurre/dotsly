@@ -11,7 +11,7 @@
   }
 </style>
 
-<div class="quarter-container" style="margin-top: -55%">
+<div class="quarter-container" style="margin-top: -25%">
   <svg
     width="100%"
     height="100%"
