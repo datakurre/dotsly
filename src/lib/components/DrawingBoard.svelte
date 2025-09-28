@@ -27,11 +27,9 @@
   export let colorPickerMode = false;
   export let toolbarPosition: ToolbarPosition = "left";
 
-
   // Local state
   let localGrid: Grid;
   $: localGrid = grid || Array(width * height).fill(null);
-
 
   // Zoom and pan state
   export let zoom = 1;
@@ -42,28 +40,45 @@
   let lastMouseY = 0;
   let gridEl: HTMLDivElement;
 
+  // Handle mouse wheel for zooming
+  function onGridWheel(e: WheelEvent) {
+    // Only zoom if ctrl is NOT pressed (let browser handle ctrl+wheel for accessibility)
+    if (e.ctrlKey) return;
+    e.preventDefault();
+    const zoomStep = 0.1;
+    let newZoom = zoom;
+    if (e.deltaY < 0) {
+      newZoom = Math.min(zoom + zoomStep, 5);
+    } else if (e.deltaY > 0) {
+      newZoom = Math.max(zoom - zoomStep, 0.2);
+    }
+    if (newZoom !== zoom) {
+      zoom = newZoom;
+    }
+  }
+
   function onGridMouseDown(e: MouseEvent) {
     if (e.button !== 0) return;
     isPanning = true;
     lastMouseX = e.clientX;
     lastMouseY = e.clientY;
-    window.addEventListener('mousemove', onGridMouseMove);
-    window.addEventListener('mouseup', onGridMouseUp);
+    window.addEventListener("mousemove", onGridMouseMove);
+    window.addEventListener("mouseup", onGridMouseUp);
     e.preventDefault();
   }
 
   function onGridMouseMove(e: MouseEvent) {
     if (!isPanning) return;
-    panX += (e.clientX - lastMouseX);
-    panY += (e.clientY - lastMouseY);
+    panX += e.clientX - lastMouseX;
+    panY += e.clientY - lastMouseY;
     lastMouseX = e.clientX;
     lastMouseY = e.clientY;
   }
 
   function onGridMouseUp() {
     isPanning = false;
-    window.removeEventListener('mousemove', onGridMouseMove);
-    window.removeEventListener('mouseup', onGridMouseUp);
+    window.removeEventListener("mousemove", onGridMouseMove);
+    window.removeEventListener("mouseup", onGridMouseUp);
   }
 
   // Keep canvas visually stable at viewport center on zoom
@@ -182,9 +197,53 @@
   <!-- toolbar slot removed, handled in parent -->
   <div
     class="grid"
+    role="application"
+    aria-label="Drawing canvas"
+    tabindex="0"
     bind:this={gridEl}
-    style="--width: {width}; --height: {height}; transform: translate({panX}px, {panY}px) scale({zoom}); cursor: {isPanning ? 'grabbing' : 'grab'}; user-select: none; touch-action: none;"
+    style="--width: {width}; --height: {height}; transform: translate({panX}px, {panY}px) scale({zoom}); cursor: {isPanning
+      ? 'grabbing'
+      : 'grab'}; user-select: none; touch-action: none;"
     on:mousedown={onGridMouseDown}
+    on:keydown={(e) => {
+      if (e.key === " ") {
+        e.preventDefault();
+        onGridMouseDown({
+          button: 0,
+          clientX: lastMouseX,
+          clientY: lastMouseY,
+          preventDefault: () => {},
+        } as MouseEvent);
+      }
+    }}
+    on:keyup={(e) => {
+      if (e.key === " ") {
+        e.preventDefault();
+        onGridMouseUp();
+      }
+    }}
+    on:wheel={onGridWheel}
+    {...{
+      "on:mousedown": onGridMouseDown,
+      "on:keydown": (e: KeyboardEvent) => {
+        if (e.key === " ") {
+          e.preventDefault();
+          onGridMouseDown({
+            button: 0,
+            clientX: lastMouseX,
+            clientY: lastMouseY,
+            preventDefault: () => {},
+          } as MouseEvent);
+        }
+      },
+      "on:keyup": (e: KeyboardEvent) => {
+        if (e.key === " ") {
+          e.preventDefault();
+          onGridMouseUp();
+        }
+      },
+      "on:wheel": onGridWheel,
+    }}
   >
     {#each localGrid as cell, i}
       <div

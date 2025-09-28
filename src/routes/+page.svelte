@@ -81,7 +81,7 @@
       {paintMode}
       {colorPickerMode}
       {toolbarPosition}
-      zoom={zoom}
+      {zoom}
       on:colorPicked={handleColorPicked}
     />
   {:else}
@@ -93,7 +93,7 @@
       {paintMode}
       {colorPickerMode}
       {toolbarPosition}
-      zoom={zoom}
+      {zoom}
       on:colorPicked={handleColorPicked}
     />
   {/if}
