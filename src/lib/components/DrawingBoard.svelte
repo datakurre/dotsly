@@ -40,6 +40,7 @@
   let lastMouseX = 0;
   let lastMouseY = 0;
   let gridEl: HTMLDivElement;
+  let didPan = false;
 
   // Handle mouse wheel for zooming
   function onGridWheel(e: WheelEvent) {
@@ -61,6 +62,7 @@
   function onGridMouseDown(e: MouseEvent) {
     if (e.button !== 0) return;
     isPanning = true;
+    didPan = false;
     lastMouseX = e.clientX;
     lastMouseY = e.clientY;
     window.addEventListener("mousemove", onGridMouseMove);
@@ -70,8 +72,13 @@
 
   function onGridMouseMove(e: MouseEvent) {
     if (!isPanning) return;
-    panX += e.clientX - lastMouseX;
-    panY += e.clientY - lastMouseY;
+    const dx = e.clientX - lastMouseX;
+    const dy = e.clientY - lastMouseY;
+    if (Math.abs(dx) > 2 || Math.abs(dy) > 2) {
+      didPan = true;
+    }
+    panX += dx;
+    panY += dy;
     lastMouseX = e.clientX;
     lastMouseY = e.clientY;
   }
@@ -137,9 +144,11 @@
 
   function draw(i: number) {
     const cell = localGrid[i];
-    if (cell && cell.shape === "quarter" && cell.color === selectedColor) {
-      localGrid[i] = { ...cell, rotation: (cell.rotation + 1) % 4 };
+    if (cell && cell.shape === selectedShape && cell.color === selectedColor) {
+      // Clear tile if same shape and color
+      localGrid[i] = null;
     } else if (selectedShape === "quarter") {
+      // Always set rotation from toolbar, never rotate on click
       localGrid[i] = {
         shape: selectedShape,
         color: selectedColor,
@@ -257,10 +266,15 @@
         class="cell"
         role="button"
         tabindex="0"
-        on:click={() =>
-          colorPickerMode ? pickColor(i) : paintMode ? paint(i) : draw(i)}
+        on:click={() => {
+          if (isPanning || didPan) {
+            didPan = false;
+            return;
+          }
+          colorPickerMode ? pickColor(i) : paintMode ? paint(i) : draw(i);
+        }}
         on:keydown={(e) => {
-          if (e.key === "Enter") {
+          if (e.key === "Enter" && !isPanning) {
             if (colorPickerMode) pickColor(i);
             else paintMode ? paint(i) : draw(i);
           }
