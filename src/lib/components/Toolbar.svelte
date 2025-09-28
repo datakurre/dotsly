@@ -1,30 +1,28 @@
 <script lang="ts">
+  import "./Toolbar.css";
+  import { tick } from "svelte";
+  let colorSearchInput: HTMLInputElement | null = null;
+  // Focus color search input when dropdown opens
+  $: if (colorDropdownOpen) {
+    tick().then(() => {
+      colorSearchInput?.focus();
+    });
+  }
   let paintMode = false;
+  let colorPickerMode = false;
 
   function togglePaintMode() {
     paintMode = !paintMode;
+    if (paintMode) colorPickerMode = false;
     dispatch("paintModeToggled", { paintMode });
   }
-  // Define a color palette
-  // LEGO DOTS color palette (approximate hex values)
-  const colorPalette = [
-    "#ffffff", // White
-    "#000000", // Black
-    "#f4d23e", // Bright Yellow
-    "#e4a9a8", // Light Pink
-    "#e3000b", // Bright Red
-    "#ff9c08", // Bright Orange
-    "#008f9b", // Bright Light Blue
-    "#0055bf", // Bright Blue
-    "#a5ca18", // Bright Yellowish Green
-    "#237841", // Earth Green
-    "#b4004e", // Bright Purple
-    "#f785b1", // Bright Pink
-    "#fbe870", // Cool Yellow
-    "#f5cd2f", // Bright Light Yellow
-    "#c870a0", // Medium Lavender
-    "#e4e7e7", // Light Bluish Gray
-  ];
+
+  function toggleColorPickerMode() {
+    colorPickerMode = !colorPickerMode;
+    if (colorPickerMode) paintMode = false;
+    dispatch("colorPickerModeToggled", { colorPickerMode });
+  }
+  import { palette2D, getColorHSLs } from "../colors";
 
   function selectColorFromPalette(color: string) {
     selectedColor = color;
@@ -37,8 +35,9 @@
 
   const dispatch = createEventDispatcher();
 
-  let selectedShape = "square";
-  let selectedColor = "#000000";
+  export let selectedShape = "square";
+  export let selectedColor = "#000000";
+  export { colorPickerMode };
 
   function selectShape(shape: string) {
     selectedShape = shape;
@@ -62,120 +61,283 @@
       reader.readAsDataURL(file);
     }
   }
+
+  let colorSearch = "";
+  let colorDropdownOpen = false;
+  let allColors = getColorHSLs();
+  let filteredColors = allColors;
+
+  $: filteredColors = colorSearch.trim()
+    ? allColors.filter(
+        (c) =>
+          c.name.toLowerCase().includes(colorSearch.toLowerCase()) ||
+          c.rgb.replace("#", "").includes(colorSearch.replace("#", "")),
+      )
+    : allColors;
+
+  function selectColorFromDropdown(color) {
+    selectedColor = color.rgb;
+    colorDropdownOpen = false;
+    colorSearch = "";
+    dispatch("colorSelected", { color: color.rgb });
+  }
+
+  let toolbarPosition: "left" | "top" = "left";
+  function toggleToolbarPosition() {
+    toolbarPosition = toolbarPosition === "left" ? "top" : "left";
+  }
 </script>
 
-<style>
-  .toolbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem;
-    border-bottom: 1px solid #ccc;
-  }
-
-  .shapes button {
-    margin-right: 0.5rem;
-  }
-
-  .shapes button.selected {
-    background-color: #eee;
-  }
-</style>
-
-<div class="toolbar">
-  <div class="shapes" style="display: flex; align-items: center;">
-    <button
-      on:click={() => selectShape("square")}
-      class:selected={selectedShape === "square"}
-      aria-label="Square"
-      style="width: 2.5rem; height: 2.5rem; padding: 0; display: inline-flex; align-items: center; justify-content: center;"
-    >
-      <Square color={selectedColor} />
-    </button>
-    <button
-      on:click={() => selectShape("circle")}
-      class:selected={selectedShape === "circle"}
-      aria-label="Circle"
-      style="width: 2.5rem; height: 2.5rem; padding: 0; display: inline-flex; align-items: center; justify-content: center;"
-    >
-      <Circle color={selectedColor} />
-    </button>
-    <button
-      on:click={() => selectShape("arch")}
-      class:selected={selectedShape === "arch"}
-      aria-label="Arch"
-      style="width: 2.5rem; height: 2.5rem; padding: 0; display: inline-flex; align-items: center; justify-content: center;"
-    >
-      <Arch color={selectedColor} rotation={0} />
-    </button>
-    <button
-      type="button"
-      aria-label="Paint roller tool"
-      class:active={paintMode}
-      on:click={togglePaintMode}
-      style="width: 2.5rem; height: 2.5rem; margin-left: 0.5rem; display: inline-flex; align-items: center; justify-content: center; border: 2px solid {paintMode
-        ? '#333'
-        : '#ccc'}; background: {paintMode
-        ? '#f4d23e'
-        : '#fff'}; border-radius: 0.5rem; cursor: pointer;"
-    >
+<div class="toolbar {toolbarPosition}">
+  <button
+    class="toolbar-toggle"
+    on:click={toggleToolbarPosition}
+    aria-label={toolbarPosition === "left"
+      ? "Move toolbar to top"
+      : "Move toolbar to left"}
+  >
+    {#if toolbarPosition === "left"}
+      <!-- Icon: Arrow from left to top -->
       <svg
-        width="22"
-        height="22"
+        width="24"
+        height="24"
         viewBox="0 0 24 24"
         fill="none"
-        stroke={paintMode ? "#333" : "#888"}
+        stroke="#555"
         stroke-width="2"
         stroke-linecap="round"
         stroke-linejoin="round"
+        style="vertical-align: middle;"
       >
-        <!-- Roller bar -->
-        <rect
-          x="6"
-          y="4"
-          width="10"
-          height="4"
-          rx="1.5"
-          fill={paintMode ? "#f4d23e" : "#fff"}
-          stroke={paintMode ? "#333" : "#888"}
-        />
-        <!-- Handle connector -->
-        <path
-          d="M16 6v4c0 1-1 2-2 2H10c-1 0-2-1-2-2V6"
-          stroke={paintMode ? "#333" : "#888"}
-        />
-        <!-- Handle -->
-        <rect
-          x="11"
-          y="14"
-          width="2"
-          height="5"
-          rx="1"
-          fill={paintMode ? "#f4d23e" : "#fff"}
-          stroke={paintMode ? "#333" : "#888"}
-        />
-        <path d="M12 12v2" stroke={paintMode ? "#333" : "#888"} />
+        <polyline points="4 12 4 4 12 4" />
+        <line x1="4" y1="4" x2="20" y2="20" />
       </svg>
-    </button>
+    {:else}
+      <!-- Icon: Arrow from top to left -->
+      <svg
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="#555"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        style="vertical-align: middle;"
+      >
+        <polyline points="12 4 20 4 20 12" />
+        <line x1="4" y1="4" x2="20" y2="20" />
+      </svg>
+    {/if}
+  </button>
+
+  <!-- Shape buttons group -->
+  <div class="shape-group">
+    <div class="group-label">Shapes</div>
+    <div class="shape-grid">
+      <button
+        on:click={() => selectShape("square")}
+        class:selected={selectedShape === "square"}
+        class="shape-button"
+        aria-label="Square"
+        title="Square - Draw square shapes"
+      >
+        <div class="shape-icon">
+          <Square color={selectedColor} />
+        </div>
+      </button>
+      <button
+        on:click={() => selectShape("circle")}
+        class:selected={selectedShape === "circle"}
+        class="shape-button"
+        aria-label="Circle"
+        title="Circle - Draw circular shapes"
+      >
+        <div class="shape-icon">
+          <Circle color={selectedColor} />
+        </div>
+      </button>
+      <button
+        on:click={() => selectShape("arch")}
+        class:selected={selectedShape === "arch"}
+        class="shape-button"
+        aria-label="Arch"
+        title="Arch - Draw arch shapes"
+      >
+        <div class="shape-icon">
+          <Arch color={selectedColor} rotation={0} />
+        </div>
+      </button>
+    </div>
   </div>
-  <div class="colors" style="display: flex; gap: 0.25rem; align-items: center;">
-    {#each colorPalette as color}
+
+  <!-- Tool buttons group -->
+  <div class="tool-group">
+    <div class="group-label">Tools</div>
+    <div class="tool-grid">
       <button
         type="button"
-        on:click={() => selectColorFromPalette(color)}
-        style="width: 1.5rem; height: 1.5rem; background: {color}; border: 2px solid {selectedColor ===
-        color
-          ? '#333'
-          : '#ccc'}; border-radius: 0.25rem; cursor: pointer;"
-        aria-label={color}
-      ></button>
-    {/each}
+        aria-label="Paint roller tool"
+        class:active={paintMode}
+        on:click={togglePaintMode}
+        class="tool-button"
+        title="Fill Tool - Fill areas with selected color"
+      >
+        <svg
+          width="28"
+          height="28"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke={paintMode ? "#333" : "#888"}
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <!-- Roller bar -->
+          <rect
+            x="6"
+            y="4"
+            width="10"
+            height="4"
+            rx="1.5"
+            fill={paintMode ? "#f4d23e" : "#fff"}
+            stroke={paintMode ? "#333" : "#888"}
+          />
+          <!-- Handle connector -->
+          <path
+            d="M16 6v4c0 1-1 2-2 2H10c-1 0-2-1-2-2V6"
+            stroke={paintMode ? "#333" : "#888"}
+          />
+          <!-- Handle -->
+          <rect
+            x="11"
+            y="14"
+            width="2"
+            height="5"
+            rx="1"
+            fill={paintMode ? "#f4d23e" : "#fff"}
+            stroke={paintMode ? "#333" : "#888"}
+          />
+          <path d="M12 12v2" stroke={paintMode ? "#333" : "#888"} />
+        </svg>
+      </button>
+      <button
+        type="button"
+        aria-label="Pick color from canvas"
+        class:active={colorPickerMode}
+        on:click={toggleColorPickerMode}
+        class="tool-button"
+        title="Color Picker - Click to pick colors from the canvas"
+      >
+        <svg
+          width="28"
+          height="28"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke={colorPickerMode ? "#333" : "#888"}
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <circle
+            cx="12"
+            cy="12"
+            r="7"
+            stroke-width="2"
+            fill={colorPickerMode ? "#aef" : "#fff"}
+          />
+          <path d="M12 9v3l2 2" stroke-width="2" />
+        </svg>
+      </button>
+    </div>
+  </div>
+  <div class="color-dropdown-container">
+    <button
+      type="button"
+      class="dropdown-toggle"
+      on:click={() => (colorDropdownOpen = !colorDropdownOpen)}
+    >
+      {selectedColor
+        ? allColors.find((c) => c.rgb === selectedColor)?.name || selectedColor
+        : "Select color..."}
+      <span style="margin-left:0.5em;">▼</span>
+    </button>
+    {#if colorDropdownOpen}
+      <div class="dropdown-menu">
+        <input
+          type="text"
+          placeholder="Search color..."
+          bind:value={colorSearch}
+          class="dropdown-search"
+          bind:this={colorSearchInput}
+        />
+        <div class="dropdown-list">
+          {#each filteredColors as color}
+            <button
+              type="button"
+              class="dropdown-item"
+              on:click={() => selectColorFromDropdown(color)}
+              aria-label={`Select color ${color.name}`}
+              style="display: flex; align-items: center; width: 100%; background: none; border: none; padding: 0; text-align: left; cursor: pointer;"
+            >
+              <span class="dropdown-swatch" style="background:{color.rgb}"
+              ></span>
+              <span>{color.name}</span>
+              <span style="margin-left:auto; color:#888; font-size:0.9em"
+                >{color.rgb}</span
+              >
+            </button>
+          {/each}
+          {#if filteredColors.length === 0}
+            <div class="dropdown-item">No colors found</div>
+          {/if}
+        </div>
+      </div>
+    {/if}
+  </div>
+  <div class="colors">
+    <div class="palette2d">
+      {#each palette2D as row}
+        <div class="palette-row">
+          {#each row as colorObj}
+            <button
+              type="button"
+              on:click={() => selectColorFromPalette(colorObj.rgb)}
+              style="width: 1.5rem; height: 1.5rem; background: {colorObj.rgb}; border: 2px solid {selectedColor ===
+              colorObj.rgb
+                ? '#333'
+                : '#ccc'}; border-radius: 0.25rem; cursor: pointer; margin: 0 0.1rem 0.1rem 0;"
+              aria-label={colorObj.name}
+              title={colorObj.name}
+            ></button>
+          {/each}
+        </div>
+      {/each}
+    </div>
   </div>
   <div class="image-upload">
-    <input
-      type="file"
-      accept="image/png, image/jpeg"
-      on:change={handleImageUpload}
-    />
+    <label class="upload-label">
+      <svg
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="#555"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        style="vertical-align: middle;"
+      >
+        <path d="M12 16V4" />
+        <polyline points="8 8 12 4 16 8" />
+        <rect x="4" y="16" width="16" height="4" rx="2" />
+      </svg>
+      <span>Upload image</span>
+      <input
+        type="file"
+        accept="image/png, image/jpeg"
+        on:change={handleImageUpload}
+      />
+    </label>
   </div>
 </div>

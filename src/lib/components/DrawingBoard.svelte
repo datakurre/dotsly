@@ -1,6 +1,10 @@
 <script lang="ts">
   // Paint tool state
   export let paintMode = false;
+  export let colorPickerMode = false;
+  export let toolbarPosition: "left" | "top" = "left";
+  import { createEventDispatcher } from "svelte";
+  const dispatch = createEventDispatcher();
 
   // Flood fill for painting adjacent blocks
   function paint(i: number) {
@@ -57,6 +61,13 @@
     }
     localGrid = [...localGrid];
   }
+
+  function pickColor(i: number) {
+    const cell = localGrid[i];
+    if (cell && cell.color) {
+      dispatch("colorPicked", { color: cell.color });
+    }
+  }
 </script>
 
 <style>
@@ -66,6 +77,13 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    box-sizing: border-box;
+  }
+  .toolbar-left-margin {
+    margin-left: 7rem;
+  }
+  .toolbar-top-margin {
+    margin-top: 5.5rem;
   }
 
   .grid {
@@ -85,16 +103,25 @@
   }
 </style>
 
-<div class="container">
+<div
+  class="container {toolbarPosition === 'left'
+    ? 'toolbar-left-margin'
+    : 'toolbar-top-margin'}"
+>
   <div class="grid" style="--width: {width}; --height: {height};">
     {#each localGrid as cell, i}
       <div
         class="cell"
         role="button"
         tabindex="0"
-        on:click={() => (paintMode ? paint(i) : draw(i))}
-        on:keydown={(e) =>
-          (paintMode ? paint(i) : draw(i)) && e.key === "Enter"}
+        on:click={() =>
+          colorPickerMode ? pickColor(i) : paintMode ? paint(i) : draw(i)}
+        on:keydown={(e) => {
+          if (e.key === "Enter") {
+            if (colorPickerMode) pickColor(i);
+            else paintMode ? paint(i) : draw(i);
+          }
+        }}
       >
         {#if cell}
           {#if cell.shape === "square"}
