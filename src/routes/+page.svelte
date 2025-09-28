@@ -45,7 +45,9 @@
   }
 
   // Color navigation functions - work with 2D palette grid
-  function findColorPosition(color: string): { row: number; col: number } | null {
+  function findColorPosition(
+    color: string,
+  ): { row: number; col: number } | null {
     for (let row = 0; row < palette2D.length; row++) {
       for (let col = 0; col < palette2D[row].length; col++) {
         if (palette2D[row][col].rgb === color) {

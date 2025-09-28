@@ -49,22 +49,34 @@ describe("Image utilities", () => {
   });
 
   describe("mapBrightnessToShape", () => {
-    it("should map dark colors to squares", () => {
-      expect(mapBrightnessToShape(0)).toBe("square");
-      expect(mapBrightnessToShape(50)).toBe("square");
-      expect(mapBrightnessToShape(84)).toBe("square");
+    it("should map darkest colors to quarters", () => {
+      expect(mapBrightnessToShape(0, false)).toBe("quarter");
+      expect(mapBrightnessToShape(25, false)).toBe("quarter");
+      expect(mapBrightnessToShape(50, false)).toBe("quarter");
     });
 
-    it("should map medium colors to quarters", () => {
-      expect(mapBrightnessToShape(85)).toBe("quarter");
-      expect(mapBrightnessToShape(100)).toBe("quarter");
-      expect(mapBrightnessToShape(169)).toBe("quarter");
+    it("should map low-medium brightness to circles", () => {
+      expect(mapBrightnessToShape(51, false)).toBe("circle");
+      expect(mapBrightnessToShape(75, false)).toBe("circle");
+      expect(mapBrightnessToShape(101, false)).toBe("circle");
     });
 
-    it("should map light colors to circles", () => {
-      expect(mapBrightnessToShape(170)).toBe("circle");
-      expect(mapBrightnessToShape(200)).toBe("circle");
-      expect(mapBrightnessToShape(255)).toBe("circle");
+    it("should map medium brightness to half-circles", () => {
+      expect(mapBrightnessToShape(102, false)).toBe("halfCircle");
+      expect(mapBrightnessToShape(125, false)).toBe("halfCircle");
+      expect(mapBrightnessToShape(152, false)).toBe("halfCircle");
+    });
+
+    it("should map high brightness to squares", () => {
+      expect(mapBrightnessToShape(153, false)).toBe("square");
+      expect(mapBrightnessToShape(175, false)).toBe("square");
+      expect(mapBrightnessToShape(203, false)).toBe("square");
+    });
+
+    it("should map very bright colors to empty", () => {
+      expect(mapBrightnessToShape(204, false)).toBe("empty");
+      expect(mapBrightnessToShape(230, false)).toBe("empty");
+      expect(mapBrightnessToShape(255, false)).toBe("empty");
     });
   });
 });
