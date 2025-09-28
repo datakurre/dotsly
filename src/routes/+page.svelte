@@ -14,7 +14,6 @@
   let grid: Grid | null = null;
   let paintMode = false;
   let selectMode = false;
-  let toolbarPosition: "left" | "top" = "left";
   let zoom = 1;
   let size = 32;
   let colorPickerMode = false;
@@ -138,7 +137,9 @@
             grid = data.grid;
             size = data.size;
             currentFilename = file.name;
-            addToHistory(grid);
+            if (grid) {
+              addToHistory(grid);
+            }
           } else {
             alert("Invalid file format");
           }
@@ -489,11 +490,6 @@
     selectedColor = event.detail.color;
     colorPickerMode = false;
   }
-  // ...existing code...
-
-  function handleToolbarPositionToggle() {
-    toolbarPosition = toolbarPosition === "left" ? "top" : "left";
-  }
 </script>
 
 <style>
@@ -524,7 +520,6 @@
     on:sizeChanged={handleSizeChanged}
     on:save={handleSave}
     on:load={handleLoad}
-    bind:toolbarPosition
     bind:selectedColor
     bind:selectedShape
     bind:paintMode
@@ -546,7 +541,6 @@
       {grid}
       {paintMode}
       {colorPickerMode}
-      {toolbarPosition}
       {zoom}
       {quarterRotation}
       {halfCircleRotation}
@@ -564,7 +558,6 @@
       {selectMode}
       {paintMode}
       {colorPickerMode}
-      {toolbarPosition}
       {zoom}
       {quarterRotation}
       {halfCircleRotation}

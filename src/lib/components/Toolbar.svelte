@@ -123,11 +123,7 @@
     on:load={handleLoad}
   />
 
-  <ColorPicker
-    bind:selectedColor
-    on:colorSelected={handleColorSelected}
-    {sortedColorPalette}
-  />
+  <ColorPicker bind:selectedColor on:colorSelected={handleColorSelected} />
 
   <SizeInput bind:size on:sizeChanged={handleSizeChanged} />
 
