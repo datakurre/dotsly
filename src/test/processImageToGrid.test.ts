@@ -53,7 +53,7 @@ describe("processImageToGrid", () => {
     const result = await processImageToGrid(mockImageSrc, colorPalette, 1, 1);
 
     expect(result).toHaveLength(1);
-    // With brightness 128 (medium gray), should map to 'arch'
-    expect(result[0].shape).toBe("arch");
+    // With brightness 128 (medium gray), should map to 'quarter'
+    expect(result[0].shape).toBe("quarter");
   });
 });

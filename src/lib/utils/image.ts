@@ -44,7 +44,7 @@ export function mapBrightnessToShape(brightness: number): string {
   if (brightness < 85) {
     return "square";
   } else if (brightness < 170) {
-    return "arch";
+    return "quarter";
   } else {
     return "circle";
   }

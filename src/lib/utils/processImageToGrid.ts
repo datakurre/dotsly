@@ -37,12 +37,12 @@ export function processImageToGrid(
         const brightness = (r + g + b) / 3;
         let shape = mapBrightnessToShape(brightness);
         let rotation = 0;
-        // Only allow arch on edges, and set direction
+        // Only allow quarter on edges, and set direction
         const isTop = y === 0;
         const isBottom = y === height - 1;
         const isLeft = x === 0;
         const isRight = x === width - 1;
-        if (shape === "arch" && (isTop || isBottom || isLeft || isRight)) {
+        if (shape === "quarter" && (isTop || isBottom || isLeft || isRight)) {
           if (isTop)
             rotation = 2; // open up
           else if (isBottom)
@@ -50,7 +50,7 @@ export function processImageToGrid(
           else if (isLeft)
             rotation = 1; // open left
           else if (isRight) rotation = 3; // open right
-        } else if (shape === "arch") {
+        } else if (shape === "quarter") {
           // Inside: prefer square or circle based on brightness
           shape = brightness < 128 ? "square" : "circle";
         }

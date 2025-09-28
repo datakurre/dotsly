@@ -2,13 +2,13 @@
 
 **Bricks-inspired pixel art and mosaic design tool**
 
-Dotsly is a web-based application built with SvelteKit that allows you to create pixel art and mosaics using bricks-inspired shapes and colors. Upload images to convert them to dot patterns, or create original designs with squares, circles, and arch shapes.
+Dotsly is a web-based application built with SvelteKit that allows you to create pixel art and mosaics using bricks-inspired shapes and colors. Upload images to convert them to dot patterns, or create original designs with squares, circles, and quarter shapes.
 
 ## Features
 
 - 🎨 **Interactive Drawing Board** - Create pixel art with customizable grid sizes
 - 🖼️ **Image Processing** - Upload images and convert them to dot patterns
-- 🎯 **Shape Tools** - Use squares, circles, and arch shapes with rotation support
+- 🎯 **Shape Tools** - Use squares, circles, and quarter shapes with rotation support
 - 🎨 **Bricks Color Palette** - Use authentic brick colors filtered by set availability
 - 🖌️ **Paint Tools** - Fill areas and pick colors from the canvas
 - 📱 **Responsive Design** - Moveable toolbar (left/top positions)

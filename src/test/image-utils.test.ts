@@ -55,10 +55,10 @@ describe("Image utilities", () => {
       expect(mapBrightnessToShape(84)).toBe("square");
     });
 
-    it("should map medium colors to arches", () => {
-      expect(mapBrightnessToShape(85)).toBe("arch");
-      expect(mapBrightnessToShape(100)).toBe("arch");
-      expect(mapBrightnessToShape(169)).toBe("arch");
+    it("should map medium colors to quarters", () => {
+      expect(mapBrightnessToShape(85)).toBe("quarter");
+      expect(mapBrightnessToShape(100)).toBe("quarter");
+      expect(mapBrightnessToShape(169)).toBe("quarter");
     });
 
     it("should map light colors to circles", () => {
