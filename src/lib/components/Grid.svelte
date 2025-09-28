@@ -3,6 +3,7 @@
   import Square from "./Square.svelte";
   import Circle from "./Circle.svelte";
   import Quarter from "./Quarter.svelte";
+  import HalfCircle from "./HalfCircle.svelte";
   import type { Grid, GridCell, ShapeType, Selection } from "../types";
 
   const dispatch = createEventDispatcher();
@@ -16,6 +17,7 @@
   export let colorPickerMode = false;
   export let selectMode = false;
   export let quarterRotation = 0;
+  export let halfCircleRotation = 0;
   export let selection: Selection = {
     startX: 0,
     startY: 0,
@@ -46,7 +48,12 @@
       grid[idx] = {
         shape: selectedShape,
         color: selectedColor,
-        rotation: selectedShape === "quarter" ? quarterRotation : 0,
+        rotation:
+          selectedShape === "quarter"
+            ? quarterRotation
+            : selectedShape === "halfCircle"
+              ? halfCircleRotation
+              : 0,
       };
       // Check neighbors (left, right, up, down)
       const x = idx % width;
@@ -71,6 +78,12 @@
         shape: selectedShape,
         color: selectedColor,
         rotation: quarterRotation,
+      };
+    } else if (selectedShape === "halfCircle") {
+      grid[i] = {
+        shape: selectedShape,
+        color: selectedColor,
+        rotation: halfCircleRotation,
       };
     } else {
       grid[i] = {
@@ -292,6 +305,8 @@
           <Circle color={cell.color} />
         {:else if cell.shape === "quarter"}
           <Quarter color={cell.color} rotation={cell.rotation} />
+        {:else if cell.shape === "halfCircle"}
+          <HalfCircle color={cell.color} rotation={cell.rotation} />
         {/if}
       {/if}
     </div>

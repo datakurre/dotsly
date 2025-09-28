@@ -15,7 +15,7 @@ export interface ColorHSL extends Color {
   l: number;
 }
 
-export type ShapeType = "square" | "circle" | "quarter";
+export type ShapeType = "square" | "circle" | "quarter" | "halfCircle";
 
 export type ToolbarPosition = "left" | "top";
 

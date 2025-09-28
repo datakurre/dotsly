@@ -23,6 +23,7 @@
   // Only support left position
   let toolbarVisible = true;
   export let quarterRotation = 0;
+  export let halfCircleRotation = 0;
   export let canUndo = false;
   export let canRedo = false;
 
@@ -35,6 +36,11 @@
   function handleQuarterRotationChanged(event: CustomEvent) {
     quarterRotation = event.detail.rotation;
     dispatch("quarterRotationChanged", event.detail);
+  }
+
+  function handleHalfCircleRotationChanged(event: CustomEvent) {
+    halfCircleRotation = event.detail.rotation;
+    dispatch("halfCircleRotationChanged", event.detail);
   }
 
   function handleColorSelected(event: CustomEvent) {
@@ -85,9 +91,11 @@
   <ShapeSelector
     bind:selectedShape
     bind:quarterRotation
+    bind:halfCircleRotation
     {selectedColor}
     on:shapeSelected={handleShapeSelected}
     on:quarterRotationChanged={handleQuarterRotationChanged}
+    on:halfCircleRotationChanged={handleHalfCircleRotationChanged}
   />
 
   <ToolSelector

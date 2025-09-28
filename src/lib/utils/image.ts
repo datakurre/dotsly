@@ -21,7 +21,9 @@ export function findClosestColor(
 }
 
 // Map brightness to shape
-export function mapBrightnessToShape(brightness: number): "circle" | "quarter" | "square" {
+export function mapBrightnessToShape(
+  brightness: number,
+): "circle" | "quarter" | "square" {
   if (brightness < 85) {
     return "square";
   } else if (brightness < 170) {

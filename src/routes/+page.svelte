@@ -7,9 +7,9 @@
   import { UndoRedoManager } from "$lib/utils/undoRedo";
   import { ClipboardManager } from "$lib/utils/clipboard";
   import { keyboardShortcuts, matchesShortcut } from "$lib/utils/keyboard";
-  import type { Selection, Grid } from "$lib/types";
+  import type { Selection, Grid, ShapeType } from "$lib/types";
 
-  let selectedShape: "square" | "circle" | "quarter" = "square";
+  let selectedShape: ShapeType = "square";
   let selectedColor = colorPalette.length > 0 ? colorPalette[0].rgb : "#000000";
   let grid: Grid | null = null;
   let paintMode = false;
@@ -19,6 +19,7 @@
   let size = 32;
   let colorPickerMode = false;
   let quarterRotation = 0;
+  let halfCircleRotation = 0;
 
   // Selection state
   let selection: Selection = {
@@ -115,6 +116,14 @@
           quarterRotation = 0;
         }
         break;
+      case "halfCircle":
+        if (selectedShape === "halfCircle") {
+          halfCircleRotation = (halfCircleRotation + 1) % 4;
+        } else {
+          selectedShape = "halfCircle";
+          halfCircleRotation = 0;
+        }
+        break;
       case "fill":
         paintMode = !paintMode;
         if (paintMode) {
@@ -198,6 +207,10 @@
 
   function handleQuarterRotationChanged(event: CustomEvent) {
     quarterRotation = event.detail.rotation;
+  }
+
+  function handleHalfCircleRotationChanged(event: CustomEvent) {
+    halfCircleRotation = event.detail.rotation;
   }
 
   function handleColorSelected(event: CustomEvent) {
@@ -375,6 +388,7 @@
     on:zoomIn={handleZoomIn}
     on:zoomOut={handleZoomOut}
     on:quarterRotationChanged={handleQuarterRotationChanged}
+    on:halfCircleRotationChanged={handleHalfCircleRotationChanged}
     on:sizeChanged={handleSizeChanged}
     bind:toolbarPosition
     bind:selectedColor
@@ -383,6 +397,7 @@
     bind:selectMode
     bind:colorPickerMode
     bind:quarterRotation
+    bind:halfCircleRotation
     bind:size
     bind:canUndo
     bind:canRedo
@@ -400,6 +415,7 @@
       {toolbarPosition}
       {zoom}
       {quarterRotation}
+      {halfCircleRotation}
       {selection}
       on:colorPicked={handleColorPicked}
       on:selectionChanged={handleSelectionChanged}
@@ -417,6 +433,7 @@
       {toolbarPosition}
       {zoom}
       {quarterRotation}
+      {halfCircleRotation}
       {selection}
       on:colorPicked={handleColorPicked}
       on:selectionChanged={handleSelectionChanged}

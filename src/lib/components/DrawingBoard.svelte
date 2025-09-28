@@ -29,6 +29,7 @@
   export let selectMode = false;
 
   export let quarterRotation = 0;
+  export let halfCircleRotation = 0;
   export let zoom = 1;
   export let selection: Selection = {
     startX: 0,
@@ -106,6 +107,7 @@
       {colorPickerMode}
       {selectMode}
       {quarterRotation}
+      {halfCircleRotation}
       {selection}
       {didPan}
       on:gridChanged={handleGridChanged}

@@ -3,6 +3,7 @@
   import Square from "./Square.svelte";
   import Circle from "./Circle.svelte";
   import Quarter from "./Quarter.svelte";
+  import HalfCircle from "./HalfCircle.svelte";
   import { keyboardShortcuts, getShortcutDescription } from "../utils/keyboard";
 
   const dispatch = createEventDispatcher();
@@ -10,6 +11,7 @@
   export let selectedShape = "square";
   export let selectedColor = "#000000";
   export let quarterRotation = 0;
+  export let halfCircleRotation = 0;
 
   function selectShape(shape: string) {
     if (shape === "quarter") {
@@ -21,10 +23,22 @@
         quarterRotation = 0;
       }
     }
+    if (shape === "halfCircle") {
+      if (selectedShape === "halfCircle") {
+        halfCircleRotation = (halfCircleRotation + 1) % 4;
+        dispatch("halfCircleRotationChanged", { rotation: halfCircleRotation });
+        return;
+      } else {
+        halfCircleRotation = 0;
+      }
+    }
     selectedShape = shape;
     dispatch("shapeSelected", { shape });
     if (shape === "quarter") {
       dispatch("quarterRotationChanged", { rotation: quarterRotation });
+    }
+    if (shape === "halfCircle") {
+      dispatch("halfCircleRotationChanged", { rotation: halfCircleRotation });
     }
   }
 </script>
@@ -63,6 +77,19 @@
     >
       <div class="shape-icon">
         <Quarter color={selectedColor} rotation={quarterRotation} />
+      </div>
+    </button>
+    <button
+      on:click={() => selectShape("halfCircle")}
+      class:selected={selectedShape === "halfCircle"}
+      class="shape-button"
+      aria-label="Half Circle"
+      title="Half Circle ({getShortcutDescription(
+        keyboardShortcuts.halfCircle,
+      )})"
+    >
+      <div class="shape-icon">
+        <HalfCircle color={selectedColor} rotation={halfCircleRotation} />
       </div>
     </button>
   </div>

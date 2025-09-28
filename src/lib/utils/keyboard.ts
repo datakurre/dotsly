@@ -8,6 +8,7 @@ export const keyboardShortcuts: Record<string, KeyboardShortcut> = {
   square: { key: "s", action: "square" },
   circle: { key: "c", action: "circle" },
   quarter: { key: "q", action: "quarter" },
+  halfCircle: { key: "h", action: "halfCircle" },
 
   // Tools
   fill: { key: "f", action: "fill" },
