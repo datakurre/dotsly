@@ -38,12 +38,13 @@
   import Square from "./Square.svelte";
   import Circle from "./Circle.svelte";
   import Arch from "./Arch.svelte";
+  import { colorPalette } from "../colors";
 
   export let grid = null;
   export let width = 32;
   export let height = 32;
   export let selectedShape = "square";
-  export let selectedColor = "#000000";
+  export let selectedColor = colorPalette.length > 0 ? colorPalette[0].rgb : "#000000";
 
   let localGrid;
   $: localGrid = grid || Array(width * height).fill(null);

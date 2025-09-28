@@ -19,7 +19,6 @@
     selectedColor = event.detail.color;
   }
 
-  import { colorPalette } from "$lib/colors";
   async function handleImageUploaded(event: CustomEvent) {
     // Use the parsed color palette from CSV, passing only the hex values
     const paletteHex = colorPalette.map((c) => c.rgb);
