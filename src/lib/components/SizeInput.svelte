@@ -14,10 +14,10 @@
 
 <div
   class="canvas-size-group"
-  style="display:flex; justify-content:center; align-items:center; width:100%;"
+  style="display:flex; justify-content:center; flex-direction: column; align-items:center; width:100%;"
 >
-  <div class="group-label" style="margin-right: 1ex">Size</div>
-  <div class="tool-grid">
+  <div class="group-label">Size</div>
+  <div class="tool-grid" style="display:flex; justify-content: center">
     <label style="display:flex; flex-direction:column; align-items:center;">
       <input
         type="number"

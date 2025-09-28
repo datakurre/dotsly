@@ -7,12 +7,36 @@
   export let panX = 0;
   export let panY = 0;
 
+  import { onMount } from "svelte";
   let isPanning = false;
   let lastMouseX = 0;
   let lastMouseY = 0;
   let didPan = false;
   let containerEl: HTMLDivElement;
   let contentEl: HTMLDivElement;
+
+  let initialized = false;
+
+  onMount(() => {
+    // Center grid (first child of contentEl) both horizontally and vertically on first mount if not already panned
+    if (containerEl && contentEl && !initialized) {
+      const containerW = containerEl.clientWidth;
+      const containerH = containerEl.clientHeight;
+      let gridW = 0;
+      let gridH = 0;
+      if (contentEl.firstElementChild instanceof HTMLElement) {
+        gridW = contentEl.firstElementChild.offsetWidth;
+        gridH = contentEl.firstElementChild.offsetHeight;
+      } else {
+        gridW = contentEl.offsetWidth;
+        gridH = contentEl.offsetHeight;
+      }
+      panX = (containerW - gridW * zoom) / 2;
+      panY = (containerH - gridH * zoom) / 2;
+      initialized = true;
+      dispatch("panChanged", { panX, panY });
+    }
+  });
 
   // Handle mouse wheel for zooming
   function onWheel(e: WheelEvent) {
