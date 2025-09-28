@@ -80,6 +80,14 @@
     dispatch("imageUploaded", event.detail);
   }
 
+  function handleSave() {
+    dispatch("save");
+  }
+
+  function handleLoad() {
+    dispatch("load");
+  }
+
   function handleToolbarToggle() {
     toolbarVisible = !toolbarVisible;
   }
@@ -111,6 +119,8 @@
     on:redo={handleRedo}
     on:zoomIn={() => dispatch("zoomIn")}
     on:zoomOut={() => dispatch("zoomOut")}
+    on:save={handleSave}
+    on:load={handleLoad}
   />
 
   <ColorPicker

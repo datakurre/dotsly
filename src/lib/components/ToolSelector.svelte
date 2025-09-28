@@ -8,6 +8,8 @@
     MousePointerClick,
     Undo,
     Redo,
+    Save,
+    Download,
   } from "lucide-svelte";
   import { keyboardShortcuts, getShortcutDescription } from "../utils/keyboard";
 
@@ -52,6 +54,14 @@
 
   function handleRedo() {
     dispatch("redo");
+  }
+
+  function handleSave() {
+    dispatch("save");
+  }
+
+  function handleLoad() {
+    dispatch("load");
   }
 </script>
 
@@ -129,6 +139,24 @@
       on:click={handleRedo}
     >
       <Redo size={24} color={canRedo ? "#555" : "#ccc"} />
+    </button>
+    <button
+      type="button"
+      aria-label="Save"
+      class="tool-button"
+      title="Save Project"
+      on:click={handleSave}
+    >
+      <Save size={24} color="#555" />
+    </button>
+    <button
+      type="button"
+      aria-label="Load"
+      class="tool-button"
+      title="Load Project"
+      on:click={handleLoad}
+    >
+      <Download size={24} color="#555" />
     </button>
   </div>
 </div>

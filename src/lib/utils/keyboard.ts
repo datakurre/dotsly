@@ -45,6 +45,12 @@ export const keyboardShortcuts: Record<string, KeyboardShortcut> = {
   // Delete
   delete: { key: "Delete", action: "delete" },
   backspace: { key: "Backspace", action: "delete" },
+
+  // Color navigation
+  colorLeft: { key: "a", shift: true, action: "colorLeft" },
+  colorRight: { key: "d", shift: true, action: "colorRight" },
+  colorUp: { key: "w", shift: true, action: "colorUp" },
+  colorDown: { key: "s", shift: true, action: "colorDown" },
 };
 
 export function matchesShortcut(

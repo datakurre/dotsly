@@ -20,6 +20,7 @@
   let colorPickerMode = false;
   let quarterRotation = 0;
   let halfCircleRotation = 0;
+  let currentFilename = "dotsly.json";
 
   // Selection state
   let selection: Selection = {
@@ -41,6 +42,112 @@
   }
   function handleZoomOut() {
     zoom = Math.max(zoom - 0.1, 0.2);
+  }
+
+  // Color navigation functions - work with 2D palette grid
+  function findColorPosition(color: string): { row: number; col: number } | null {
+    for (let row = 0; row < palette2D.length; row++) {
+      for (let col = 0; col < palette2D[row].length; col++) {
+        if (palette2D[row][col].rgb === color) {
+          return { row, col };
+        }
+      }
+    }
+    return null;
+  }
+
+  function navigateColorLeft() {
+    const pos = findColorPosition(selectedColor);
+    if (pos && pos.col > 0) {
+      selectedColor = palette2D[pos.row][pos.col - 1].rgb;
+    } else if (pos && pos.row > 0) {
+      // Wrap to end of previous row
+      const prevRow = pos.row - 1;
+      const lastCol = palette2D[prevRow].length - 1;
+      selectedColor = palette2D[prevRow][lastCol].rgb;
+    }
+  }
+
+  function navigateColorRight() {
+    const pos = findColorPosition(selectedColor);
+    if (pos && pos.col < palette2D[pos.row].length - 1) {
+      selectedColor = palette2D[pos.row][pos.col + 1].rgb;
+    } else if (pos && pos.row < palette2D.length - 1) {
+      // Wrap to start of next row
+      selectedColor = palette2D[pos.row + 1][0].rgb;
+    }
+  }
+
+  function navigateColorUp() {
+    const pos = findColorPosition(selectedColor);
+    if (pos && pos.row > 0) {
+      // Stay in same column, but clamp to row length if needed
+      const targetCol = Math.min(pos.col, palette2D[pos.row - 1].length - 1);
+      selectedColor = palette2D[pos.row - 1][targetCol].rgb;
+    }
+  }
+
+  function navigateColorDown() {
+    const pos = findColorPosition(selectedColor);
+    if (pos && pos.row < palette2D.length - 1) {
+      // Stay in same column, but clamp to row length if needed
+      const targetCol = Math.min(pos.col, palette2D[pos.row + 1].length - 1);
+      selectedColor = palette2D[pos.row + 1][targetCol].rgb;
+    }
+  }
+
+  function handleSave() {
+    if (!grid) return;
+
+    const data = {
+      grid,
+      size,
+      version: "1.0",
+    };
+
+    const json = JSON.stringify(data, null, 2);
+    const blob = new Blob([json], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = currentFilename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function handleLoad() {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".json";
+
+    input.onchange = (event) => {
+      const file = (event.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = JSON.parse(e.target?.result as string);
+
+          if (data.grid && data.size) {
+            grid = data.grid;
+            size = data.size;
+            currentFilename = file.name;
+            addToHistory(grid);
+          } else {
+            alert("Invalid file format");
+          }
+        } catch (error) {
+          alert("Error loading file: " + error);
+        }
+      };
+      reader.readAsText(file);
+    };
+
+    input.click();
   }
   // Initialize managers
   onMount(() => {
@@ -98,9 +205,11 @@
   function handleShortcutAction(action: string) {
     switch (action) {
       case "select":
-        selectMode = true;
-        paintMode = false;
-        colorPickerMode = false;
+        selectMode = !selectMode;
+        if (selectMode) {
+          paintMode = false;
+          colorPickerMode = false;
+        }
         break;
       case "square":
         selectedShape = "square";
@@ -198,6 +307,18 @@
           handleMoveSelection(1, 0);
         }
         break;
+      case "colorLeft":
+        navigateColorLeft();
+        break;
+      case "colorRight":
+        navigateColorRight();
+        break;
+      case "colorUp":
+        navigateColorUp();
+        break;
+      case "colorDown":
+        navigateColorDown();
+        break;
     }
   }
 
@@ -221,6 +342,15 @@
     // Use the parsed color palette from CSV, passing only the hex values
     const paletteHex = colorPalette.map((c) => c.rgb);
     grid = await processImageToGrid(event.detail.src, paletteHex, size, size);
+    addToHistory(grid);
+
+    // Set filename based on uploaded image, replacing extension with .json
+    if (event.detail.fileName) {
+      const nameWithoutExt = event.detail.fileName.replace(/\.[^/.]+$/, "");
+      currentFilename = `${nameWithoutExt}.json`;
+    } else {
+      currentFilename = "dotsly.json";
+    }
   }
 
   function handleSizeChanged(event: CustomEvent) {
@@ -390,6 +520,8 @@
     on:quarterRotationChanged={handleQuarterRotationChanged}
     on:halfCircleRotationChanged={handleHalfCircleRotationChanged}
     on:sizeChanged={handleSizeChanged}
+    on:save={handleSave}
+    on:load={handleLoad}
     bind:toolbarPosition
     bind:selectedColor
     bind:selectedShape

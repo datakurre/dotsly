@@ -9,7 +9,10 @@
     if (file) {
       const reader = new FileReader();
       reader.onload = () => {
-        dispatch("imageUploaded", { src: reader.result });
+        dispatch("imageUploaded", {
+          src: reader.result,
+          fileName: file.name,
+        });
       };
       reader.readAsDataURL(file);
     }
