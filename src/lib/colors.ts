@@ -1,30 +1,25 @@
 /**
  * Color management module for Dotsly
- * 
- * This module loads colors from colors.csv and filters them based on availability 
- * in the LEGO sets (data/sets/*.csv). It ensures that all components (toolbar, 
+ *
+ * This module loads colors from colors.csv and filters them based on availability
+ * in the LEGO sets (data/sets/*.csv). It ensures that all components (toolbar,
  * palette, image processing) use the same consistent set of colors.
- * 
+ *
  * Exports:
  * - colorPalette: Array of available colors { id, name, rgb, is_trans }
  * - palette2D: 2D array of colors organized by hue and lightness for UI display
  * - getFilteredColorHSLs(): Function to get colors with HSL values
  */
 
+import type { Color, ColorHSL } from "./types";
 import colorsCsv from "../../data/colors.csv?raw";
+
 // Import all CSVs under data/sets (Vite import.meta.glob)
 const setsCsvModules = import.meta.glob("../../data/sets/*.csv", {
   query: "?raw",
   import: "default",
   eager: true,
 });
-
-export interface Color {
-  id: number;
-  name: string;
-  rgb: string;
-  is_trans: boolean;
-}
 
 export function parseColorsCsv(csv: string): Color[] {
   const lines = csv.trim().split("\n");
@@ -82,13 +77,6 @@ function hexToHsl(hex: string): { h: number; s: number; l: number } {
 }
 
 // Group by main color (hue, Y axis), sort by tone (lightness, X axis, dark to light)
-export interface ColorHSL extends Color {
-  h: number;
-  s: number;
-  l: number;
-}
-
-
 
 // Group colors by hue buckets (e.g. 24 buckets, 15deg each), then reflow to max 5 per row, no duplicates
 function groupAndReflow(
