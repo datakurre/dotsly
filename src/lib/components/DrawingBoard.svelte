@@ -6,12 +6,15 @@
     ShapeType,
     ToolbarPosition,
     ColorPickedEvent,
+    Selection,
   } from "../types";
   import ZoomPanContainer from "./ZoomPanContainer.svelte";
   import DrawingGrid from "./Grid.svelte";
 
   const dispatch = createEventDispatcher<{
     colorPicked: ColorPickedEvent;
+    gridChanged: { grid: Grid };
+    selectionChanged: { selection: Selection };
   }>();
 
   // Props
@@ -23,9 +26,17 @@
     colorPalette.length > 0 ? colorPalette[0].rgb : "#000000";
   export let paintMode = false;
   export let colorPickerMode = false;
+  export let selectMode = false;
   export let toolbarPosition: ToolbarPosition = "left";
   export let quarterRotation = 0;
   export let zoom = 1;
+  export let selection: Selection = {
+    startX: 0,
+    startY: 0,
+    endX: 0,
+    endY: 0,
+    active: false,
+  };
 
   // Local state
   let localGrid: Grid;
@@ -50,10 +61,16 @@
 
   function handleGridChanged(event: CustomEvent) {
     localGrid = event.detail.grid;
+    dispatch("gridChanged", event.detail);
   }
 
   function handleColorPicked(event: CustomEvent) {
     dispatch("colorPicked", event.detail);
+  }
+
+  function handleSelectionChanged(event: CustomEvent) {
+    selection = event.detail.selection;
+    dispatch("selectionChanged", event.detail);
   }
 </script>
 
@@ -83,6 +100,7 @@
     {zoom}
     {panX}
     {panY}
+    {selectMode}
     on:zoomChanged={handleZoomChanged}
     on:panChanged={handlePanChanged}
     on:panEnd={handlePanEnd}
@@ -96,10 +114,13 @@
       {selectedColor}
       {paintMode}
       {colorPickerMode}
+      {selectMode}
       {quarterRotation}
+      {selection}
       {didPan}
       on:gridChanged={handleGridChanged}
       on:colorPicked={handleColorPicked}
+      on:selectionChanged={handleSelectionChanged}
     />
   </ZoomPanContainer>
 </div>

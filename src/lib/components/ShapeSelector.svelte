@@ -3,6 +3,7 @@
   import Square from "./Square.svelte";
   import Circle from "./Circle.svelte";
   import Quarter from "./Quarter.svelte";
+  import { keyboardShortcuts, getShortcutDescription } from "../utils/keyboard";
 
   const dispatch = createEventDispatcher();
 
@@ -36,7 +37,7 @@
       class:selected={selectedShape === "square"}
       class="shape-button"
       aria-label="Square"
-      title="Square - Draw square shapes"
+      title="Square ({getShortcutDescription(keyboardShortcuts.square)})"
     >
       <div class="shape-icon">
         <Square color={selectedColor} />
@@ -47,7 +48,7 @@
       class:selected={selectedShape === "circle"}
       class="shape-button"
       aria-label="Circle"
-      title="Circle - Draw circular shapes"
+      title="Circle ({getShortcutDescription(keyboardShortcuts.circle)})"
     >
       <div class="shape-icon">
         <Circle color={selectedColor} />
@@ -58,7 +59,7 @@
       class:selected={selectedShape === "quarter"}
       class="shape-button"
       aria-label="Quarter"
-      title="Quarter - Draw quarter tile shapes (click again to rotate)"
+      title="Quarter ({getShortcutDescription(keyboardShortcuts.quarter)})"
     >
       <div class="shape-icon">
         <Quarter color={selectedColor} rotation={quarterRotation} />

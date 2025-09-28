@@ -6,6 +6,7 @@
   export let zoom = 1;
   export let panX = 0;
   export let panY = 0;
+  export let selectMode = false;
 
   import { onMount } from "svelte";
   let isPanning = false;
@@ -61,6 +62,11 @@
   }
 
   function onMouseDown(e: MouseEvent) {
+    // Don't start panning when in select mode - let selection handling take priority
+    if (selectMode) {
+      return;
+    }
+
     // Start panning with left mouse button - we'll handle grid clicks in the Grid component
     if (e.button === 0) {
       isPanning = true;
@@ -152,9 +158,11 @@
   <div
     bind:this={contentEl}
     class="zoom-pan-content"
-    style="transform: translate({panX}px, {panY}px) scale({zoom}); cursor: {isPanning
-      ? 'grabbing'
-      : 'grab'};"
+    style="transform: translate({panX}px, {panY}px) scale({zoom}); cursor: {selectMode
+      ? 'crosshair'
+      : isPanning
+        ? 'grabbing'
+        : 'grab'};"
   >
     <slot {didPan} />
   </div>

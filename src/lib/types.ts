@@ -19,6 +19,28 @@ export type ShapeType = "square" | "circle" | "quarter";
 
 export type ToolbarPosition = "left" | "top";
 
+export type ToolType = "draw" | "select" | "fill" | "colorPicker";
+
+export interface Selection {
+  startX: number;
+  startY: number;
+  endX: number;
+  endY: number;
+  active: boolean;
+  cells?: (GridCell | null)[];
+}
+
+export interface HistoryState {
+  grid: Grid;
+  timestamp: number;
+}
+
+export interface ClipboardData {
+  cells: (GridCell | null)[];
+  width: number;
+  height: number;
+}
+
 export interface GridCell {
   shape: ShapeType;
   color: string;
@@ -67,4 +89,21 @@ export interface ColorPickerModeToggledEvent {
 
 export interface ColorPickedEvent {
   color: string;
+}
+
+export interface SelectionEvent {
+  selection: Selection;
+}
+
+export interface UndoRedoEvent {
+  canUndo: boolean;
+  canRedo: boolean;
+}
+
+export interface KeyboardShortcut {
+  key: string;
+  ctrl?: boolean;
+  shift?: boolean;
+  alt?: boolean;
+  action: string;
 }

@@ -60,8 +60,8 @@
 
 .toolbar.left {
   flex-direction: column;
-  width: 14rem;
-  min-width: 12rem;
+  width: 12rem;
+  min-width: 10rem;
   height: 100vh;
   max-height: 100vh;
   position: fixed;
@@ -140,22 +140,22 @@
 .shape-grid,
 .tool-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.25rem;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.2rem;
   width: 100%;
-  max-width: 6rem;
+  max-width: 9rem;
 }
 
 .toolbar.top .shape-grid,
 .toolbar.top .tool-grid {
-  grid-template-columns: repeat(3, 1fr);
-  max-width: 9rem;
+  grid-template-columns: repeat(4, 1fr);
+  max-width: 12rem;
 }
 
 .shape-button,
 .tool-button {
-  width: 2.8rem;
-  height: 2.8rem;
+  width: 2.6rem;
+  height: 2.6rem;
   padding: 0;
   display: inline-flex;
   align-items: center;
@@ -174,21 +174,32 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+.shape-button.selected:hover,
+.tool-button.active:hover {
+  border-color: #005a9e;
+  box-shadow:
+    0 0 0 2px rgba(0, 122, 204, 0.3),
+    0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
 .shape-button.selected {
-  border-color: #333;
-  background: #f0f8ff;
+  border-color: #007acc;
+  background: #e6f3ff;
+  box-shadow: 0 0 0 2px rgba(0, 122, 204, 0.2);
+  transform: translateY(-1px);
 }
 
 .tool-button.active {
-  border-color: #333;
+  border-color: #007acc;
+  background: #e6f3ff;
+  box-shadow: 0 0 0 2px rgba(0, 122, 204, 0.2);
+  transform: translateY(-1px);
 }
 
-.tool-button.active:first-child {
-  background: #f4d23e;
-}
-
+/* Remove old specific styling */
+.tool-button.active:first-child,
 .tool-button.active:nth-child(2) {
-  background: #aef;
+  background: #e6f3ff;
 }
 
 .shape-icon {
@@ -214,7 +225,7 @@
   border-radius: 0.375rem;
   font-size: 0.875rem;
   white-space: nowrap;
-  z-index: 1000;
+  z-index: 9999;
   pointer-events: none;
   opacity: 0;
   animation: fadeInTooltip 0.2s ease forwards;
@@ -233,6 +244,22 @@
 .shape-button,
 .tool-button {
   position: relative;
+  z-index: 1;
+}
+
+.shape-button:hover,
+.tool-button:hover {
+  z-index: 9998;
+}
+
+.tool-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.tool-button:disabled:hover {
+  background: initial;
+  z-index: 1;
 }
 
 @keyframes fadeInTooltip {

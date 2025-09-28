@@ -16,10 +16,12 @@
     colorPalette.length > 0 ? colorPalette[0].rgb : "#000000";
   export let paintMode = false;
   export let colorPickerMode = false;
+  export let selectMode = false;
   export let size: number = 32;
   export let toolbarPosition: "left" | "top" = "left";
-
-  let quarterRotation = 0;
+  export let quarterRotation = 0;
+  export let canUndo = false;
+  export let canRedo = false;
 
   // Handle events from child components
   function handleShapeSelected(event: CustomEvent) {
@@ -45,6 +47,19 @@
   function handleColorPickerModeToggled(event: CustomEvent) {
     colorPickerMode = event.detail.colorPickerMode;
     dispatch("colorPickerModeToggled", event.detail);
+  }
+
+  function handleSelectModeToggled(event: CustomEvent) {
+    selectMode = event.detail.selectMode;
+    dispatch("selectModeToggled", event.detail);
+  }
+
+  function handleUndo() {
+    dispatch("undo");
+  }
+
+  function handleRedo() {
+    dispatch("redo");
   }
 
   function handleSizeChanged(event: CustomEvent) {
@@ -78,8 +93,14 @@
   <ToolSelector
     bind:paintMode
     bind:colorPickerMode
+    bind:selectMode
+    bind:canUndo
+    bind:canRedo
     on:paintModeToggled={handlePaintModeToggled}
     on:colorPickerModeToggled={handleColorPickerModeToggled}
+    on:selectModeToggled={handleSelectModeToggled}
+    on:undo={handleUndo}
+    on:redo={handleRedo}
     on:zoomIn={() => dispatch("zoomIn")}
     on:zoomOut={() => dispatch("zoomOut")}
   />

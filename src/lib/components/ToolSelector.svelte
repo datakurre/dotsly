@@ -1,21 +1,57 @@
 <script lang="ts">
   import { createEventDispatcher } from "svelte";
+  import {
+    ZoomIn,
+    ZoomOut,
+    PaintBucket,
+    Pipette,
+    MousePointerClick,
+    Undo,
+    Redo,
+  } from "lucide-svelte";
+  import { keyboardShortcuts, getShortcutDescription } from "../utils/keyboard";
 
   const dispatch = createEventDispatcher();
 
   export let paintMode = false;
   export let colorPickerMode = false;
+  export let selectMode = false;
+  export let canUndo = false;
+  export let canRedo = false;
 
   function togglePaintMode() {
     paintMode = !paintMode;
-    if (paintMode) colorPickerMode = false;
+    if (paintMode) {
+      colorPickerMode = false;
+      selectMode = false;
+    }
     dispatch("paintModeToggled", { paintMode });
   }
 
   function toggleColorPickerMode() {
     colorPickerMode = !colorPickerMode;
-    if (colorPickerMode) paintMode = false;
+    if (colorPickerMode) {
+      paintMode = false;
+      selectMode = false;
+    }
     dispatch("colorPickerModeToggled", { colorPickerMode });
+  }
+
+  function toggleSelectMode() {
+    selectMode = !selectMode;
+    if (selectMode) {
+      paintMode = false;
+      colorPickerMode = false;
+    }
+    dispatch("selectModeToggled", { selectMode });
+  }
+
+  function handleUndo() {
+    dispatch("undo");
+  }
+
+  function handleRedo() {
+    dispatch("redo");
   }
 </script>
 
@@ -24,122 +60,75 @@
   <div class="tool-grid">
     <button
       type="button"
+      aria-label="Selection tool"
+      class:active={selectMode}
+      on:click={toggleSelectMode}
+      class="tool-button"
+      title="Selection Tool ({getShortcutDescription(
+        keyboardShortcuts.select,
+      )})"
+    >
+      <MousePointerClick size={24} color={selectMode ? "#333" : "#555"} />
+    </button>
+    <button
+      type="button"
       aria-label="Zoom in"
       class="tool-button"
-      title="Zoom In"
+      title="Zoom In ({getShortcutDescription(keyboardShortcuts.zoomIn)})"
       on:click={() => dispatch("zoomIn")}
     >
-      <svg
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="#555"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      >
-        <circle cx="11" cy="11" r="8" />
-        <line x1="11" y1="8" x2="11" y2="14" />
-        <line x1="8" y1="11" x2="14" y2="11" />
-        <line x1="21" y1="21" x2="16.65" y2="16.65" />
-      </svg>
+      <ZoomIn size={24} color="#555" />
     </button>
     <button
       type="button"
       aria-label="Zoom out"
       class="tool-button"
-      title="Zoom Out"
+      title="Zoom Out ({getShortcutDescription(keyboardShortcuts.zoomOut)})"
       on:click={() => dispatch("zoomOut")}
     >
-      <svg
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="#555"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      >
-        <circle cx="11" cy="11" r="8" />
-        <line x1="8" y1="11" x2="14" y2="11" />
-        <line x1="21" y1="21" x2="16.65" y2="16.65" />
-      </svg>
+      <ZoomOut size={24} color="#555" />
     </button>
     <button
       type="button"
-      aria-label="Paint roller tool"
+      aria-label="Paint bucket tool"
       class:active={paintMode}
       on:click={togglePaintMode}
       class="tool-button"
-      title="Fill Tool - Fill areas with selected color"
+      title="Fill Tool ({getShortcutDescription(keyboardShortcuts.fill)})"
     >
-      <svg
-        width="28"
-        height="28"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke={paintMode ? "#333" : "#888"}
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      >
-        <!-- Roller bar -->
-        <rect
-          x="6"
-          y="4"
-          width="10"
-          height="4"
-          rx="1.5"
-          fill={paintMode ? "#f4d23e" : "#fff"}
-          stroke={paintMode ? "#333" : "#888"}
-        />
-        <!-- Handle connector -->
-        <path
-          d="M16 6v4c0 1-1 2-2 2H10c-1 0-2-1-2-2V6"
-          stroke={paintMode ? "#333" : "#888"}
-        />
-        <!-- Handle -->
-        <rect
-          x="11"
-          y="14"
-          width="2"
-          height="5"
-          rx="1"
-          fill={paintMode ? "#f4d23e" : "#fff"}
-          stroke={paintMode ? "#333" : "#888"}
-        />
-        <path d="M12 12v2" stroke={paintMode ? "#333" : "#888"} />
-      </svg>
+      <PaintBucket size={24} color={paintMode ? "#333" : "#555"} />
     </button>
     <button
       type="button"
-      aria-label="Pick color from canvas"
+      aria-label="Color picker tool"
       class:active={colorPickerMode}
       on:click={toggleColorPickerMode}
       class="tool-button"
-      title="Color Picker - Click to pick colors from the canvas"
+      title="Color Picker ({getShortcutDescription(
+        keyboardShortcuts.colorPicker,
+      )})"
     >
-      <svg
-        width="28"
-        height="28"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke={colorPickerMode ? "#333" : "#888"}
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      >
-        <circle
-          cx="12"
-          cy="12"
-          r="7"
-          stroke-width="2"
-          fill={colorPickerMode ? "#aef" : "#fff"}
-        />
-        <path d="M12 9v3l2 2" stroke-width="2" />
-      </svg>
+      <Pipette size={24} color={colorPickerMode ? "#333" : "#555"} />
+    </button>
+    <button
+      type="button"
+      aria-label="Undo"
+      class="tool-button"
+      title="Undo ({getShortcutDescription(keyboardShortcuts.undo)})"
+      disabled={!canUndo}
+      on:click={handleUndo}
+    >
+      <Undo size={24} color={canUndo ? "#555" : "#ccc"} />
+    </button>
+    <button
+      type="button"
+      aria-label="Redo"
+      class="tool-button"
+      title="Redo ({getShortcutDescription(keyboardShortcuts.redo)})"
+      disabled={!canRedo}
+      on:click={handleRedo}
+    >
+      <Redo size={24} color={canRedo ? "#555" : "#ccc"} />
     </button>
   </div>
 </div>
