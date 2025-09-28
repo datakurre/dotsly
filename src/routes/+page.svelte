@@ -4,9 +4,9 @@
   import { palette2D, colorPalette } from "$lib/colors";
   import { processImageToGrid } from "$lib/utils/processImageToGrid";
 
-  let selectedShape = "square";
+  let selectedShape: "square" | "circle" | "quarter" = "square";
   let selectedColor = colorPalette.length > 0 ? colorPalette[0].rgb : "#000000";
-  let grid = null;
+  let grid: any = null;
   let paintMode = false;
   let toolbarPosition: "left" | "top" = "left";
   let zoom = 1;
