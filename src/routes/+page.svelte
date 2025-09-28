@@ -10,6 +10,7 @@
   let paintMode = false;
   let toolbarPosition: "left" | "top" = "left";
   let zoom = 1;
+  let size = 32;
   function handleZoomIn() {
     zoom = Math.min(zoom + 0.1, 3);
   }
@@ -34,7 +35,12 @@
   async function handleImageUploaded(event: CustomEvent) {
     // Use the parsed color palette from CSV, passing only the hex values
     const paletteHex = colorPalette.map((c) => c.rgb);
-    grid = await processImageToGrid(event.detail.src, paletteHex, 32, 32);
+    grid = await processImageToGrid(event.detail.src, paletteHex, size, size);
+  }
+
+  function handleSizeChanged(event: CustomEvent) {
+    size = event.detail.size;
+    grid = null;
   }
 
   function handleColorPickerModeToggled(event: CustomEvent) {
@@ -74,13 +80,15 @@
     on:zoomIn={handleZoomIn}
     on:zoomOut={handleZoomOut}
     on:quarterRotationChanged={handleQuarterRotationChanged}
+    on:sizeChanged={handleSizeChanged}
     bind:toolbarPosition
     bind:selectedColor
+    bind:size
   />
   {#if grid}
     <DrawingBoard
-      width={32}
-      height={32}
+      width={size}
+      height={size}
       {selectedShape}
       {selectedColor}
       {grid}
@@ -93,8 +101,8 @@
     />
   {:else}
     <DrawingBoard
-      width={32}
-      height={32}
+      width={size}
+      height={size}
       {selectedShape}
       {selectedColor}
       {paintMode}
