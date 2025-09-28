@@ -1,10 +1,35 @@
 <script lang="ts">
-  // Paint tool state
+  import { createEventDispatcher } from "svelte";
+  import Square from "./Square.svelte";
+  import Circle from "./Circle.svelte";
+  import Arch from "./Arch.svelte";
+  import { colorPalette } from "../colors";
+  import type {
+    Grid,
+    GridCell,
+    ShapeType,
+    ToolbarPosition,
+    ColorPickedEvent,
+  } from "../types";
+
+  const dispatch = createEventDispatcher<{
+    colorPicked: ColorPickedEvent;
+  }>();
+
+  // Props
+  export let grid: Grid | null = null;
+  export let width = 32;
+  export let height = 32;
+  export let selectedShape: ShapeType = "square";
+  export let selectedColor =
+    colorPalette.length > 0 ? colorPalette[0].rgb : "#000000";
   export let paintMode = false;
   export let colorPickerMode = false;
-  export let toolbarPosition: "left" | "top" = "left";
-  import { createEventDispatcher } from "svelte";
-  const dispatch = createEventDispatcher();
+  export let toolbarPosition: ToolbarPosition = "left";
+
+  // Local state
+  let localGrid: Grid;
+  $: localGrid = grid || Array(width * height).fill(null);
 
   // Flood fill for painting adjacent blocks
   function paint(i: number) {
@@ -35,20 +60,6 @@
     }
     localGrid = [...localGrid];
   }
-  import Square from "./Square.svelte";
-  import Circle from "./Circle.svelte";
-  import Arch from "./Arch.svelte";
-  import { colorPalette } from "../colors";
-
-  export let grid = null;
-  export let width = 32;
-  export let height = 32;
-  export let selectedShape = "square";
-  export let selectedColor =
-    colorPalette.length > 0 ? colorPalette[0].rgb : "#000000";
-
-  let localGrid;
-  $: localGrid = grid || Array(width * height).fill(null);
 
   function draw(i: number) {
     const cell = localGrid[i];

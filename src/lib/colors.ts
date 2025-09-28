@@ -2,7 +2,7 @@
  * Color management module for Dotsly
  *
  * This module loads colors from colors.csv and filters them based on availability
- * in the LEGO sets (data/sets/*.csv). It ensures that all components (toolbar,
+ * in the bricks sets (data/sets/*.csv). It ensures that all components (toolbar,
  * palette, image processing) use the same consistent set of colors.
  *
  * Exports:

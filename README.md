@@ -1,38 +1,112 @@
-# sv
+# Dotsly
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+**Bricks-inspired pixel art and mosaic design tool**
 
-## Creating a project
+Dotsly is a web-based application built with SvelteKit that allows you to create pixel art and mosaics using bricks-inspired shapes and colors. Upload images to convert them to dot patterns, or create original designs with squares, circles, and arch shapes.
 
-If you're seeing this, you've probably already done this step. Congrats!
+## Features
 
-```sh
-# create a new project in the current directory
-npx sv create
+- 🎨 **Interactive Drawing Board** - Create pixel art with customizable grid sizes
+- 🖼️ **Image Processing** - Upload images and convert them to dot patterns
+- 🎯 **Shape Tools** - Use squares, circles, and arch shapes with rotation support
+- 🎨 **Bricks Color Palette** - Use authentic brick colors filtered by set availability
+- 🖌️ **Paint Tools** - Fill areas and pick colors from the canvas
+- 📱 **Responsive Design** - Moveable toolbar (left/top positions)
 
-# create a new project in my-app
-npx sv create my-app
+## Color System
+
+Colors are loaded from `data/colors.csv` and filtered based on availability in actual brick sets (found in `data/sets/*.csv`). This ensures you can actually build your designs with real bricks!
+
+## Development
+
+### Prerequisites
+
+- Node.js 18+
+- npm (or pnpm/yarn)
+
+### Getting Started
+
+1. **Install dependencies**
+
+   ```bash
+   npm install
+   ```
+
+2. **Start development server**
+
+   ```bash
+   npm run dev
+   # or with auto-open browser
+   npm run dev -- --open
+   ```
+
+3. **Type checking**
+   ```bash
+   npm run check
+   # or with watch mode
+   npm run check:watch
+   ```
+
+### Testing
+
+The project includes a comprehensive test suite using Vitest and Testing Library:
+
+```bash
+# Run all tests
+npm test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Run with coverage report
+npm run test:coverage
+
+# Run with UI interface
+npm run test:ui
 ```
 
-## Developing
+**Test Categories:**
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+- **Unit Tests** - Color parsing, image utilities
+- **Integration Tests** - Image-to-grid conversion
+- **Component Tests** - Individual Svelte components (planned)
 
-```sh
-npm run dev
+### Code Quality
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+```bash
+# Format code with Prettier
+npm run format
+
+# Type check with svelte-check
+npm run check
 ```
 
-## Building
+## Building & Deployment
 
-To create a production version of your app:
-
-```sh
+```bash
+# Create production build
 npm run build
+
+# Preview production build locally
+npm run preview
 ```
 
-You can preview the production build with `npm run preview`.
+The app is configured with `@sveltejs/adapter-static` for static site deployment and includes GitHub Actions CI/CD pipeline.
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+## Project Structure
+
+```
+src/
+├── lib/
+│   ├── components/     # Svelte components
+│   ├── utils/          # Utility functions
+│   ├── colors.ts       # Color management
+│   └── types.ts        # TypeScript interfaces
+├── routes/             # SvelteKit pages
+├── test/               # Test files and setup
+└── app.html            # HTML template
+
+data/                   # CSV data files
+├── colors.csv          # Available brick colors
+└── sets/              # Brick set inventories
+```

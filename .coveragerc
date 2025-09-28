@@ -1,0 +1,29 @@
+# Test Coverage Ignore
+# This file specifies which files to exclude from coverage reports
+
+# Build artifacts
+/build/
+/node_modules/
+
+# Configuration files  
+*.config.js
+*.config.ts
+svelte.config.js
+vite.config.ts
+
+# Test files themselves
+**/*.test.ts
+**/*.test.js
+**/*.spec.ts
+**/*.spec.js
+/src/test/
+
+# Type definitions
+**/*.d.ts
+
+# Static assets
+/static/
+
+# Development and CI files
+/.github/
+/coverage/
