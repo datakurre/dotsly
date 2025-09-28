@@ -1,7 +1,7 @@
 <script lang="ts">
   import "./Toolbar.css";
   import { createEventDispatcher } from "svelte";
-  import { colorPalette } from "../colors";
+  import { colorPalette, getSortedColorPalette } from "../colors";
   import ColorPicker from "./ColorPicker.svelte";
   import ShapeSelector from "./ShapeSelector.svelte";
   import ToolSelector from "./ToolSelector.svelte";
@@ -12,8 +12,10 @@
   const dispatch = createEventDispatcher();
 
   export let selectedShape = "square";
+  // Use sorted palette for ColorPicker
+  const sortedColorPalette = getSortedColorPalette();
   export let selectedColor =
-    colorPalette.length > 0 ? colorPalette[0].rgb : "#000000";
+    sortedColorPalette.length > 0 ? sortedColorPalette[0].rgb : "#000000";
   export let paintMode = false;
   export let colorPickerMode = false;
   export let selectMode = false;
@@ -103,7 +105,11 @@
     on:zoomOut={() => dispatch("zoomOut")}
   />
 
-  <ColorPicker bind:selectedColor on:colorSelected={handleColorSelected} />
+  <ColorPicker
+    bind:selectedColor
+    on:colorSelected={handleColorSelected}
+    {sortedColorPalette}
+  />
 
   <SizeInput bind:size on:sizeChanged={handleSizeChanged} />
 

@@ -1,8 +1,9 @@
 <script lang="ts">
   import { tick } from "svelte";
   import { createEventDispatcher } from "svelte";
-  import { palette2D, colorPalette } from "../colors";
+  import { palette2D, getSortedColorPalette } from "../colors";
 
+  const colorPalette = getSortedColorPalette();
   const dispatch = createEventDispatcher();
 
   export let selectedColor =

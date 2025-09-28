@@ -13,6 +13,7 @@
 
 import type { Color, ColorHSL } from "./types";
 import colorsCsv from "../../data/colors.csv?raw";
+import chroma from "chroma-js";
 
 // Import all CSVs under data/sets (Vite import.meta.glob)
 const setsCsvModules = import.meta.glob("../../data/sets/*.csv", {
@@ -35,45 +36,12 @@ export function parseColorsCsv(csv: string): Color[] {
   });
 }
 
-// Helper: convert hex to HSL
+// Helper: convert hex to HSL using chroma-js
 function hexToHsl(hex: string): { h: number; s: number; l: number } {
-  let r = 0,
-    g = 0,
-    b = 0;
-  if (hex.length === 7) {
-    r = parseInt(hex.slice(1, 3), 16);
-    g = parseInt(hex.slice(3, 5), 16);
-    b = parseInt(hex.slice(5, 7), 16);
-  } else if (hex.length === 4) {
-    r = parseInt(hex[1] + hex[1], 16);
-    g = parseInt(hex[2] + hex[2], 16);
-    b = parseInt(hex[3] + hex[3], 16);
-  }
-  r /= 255;
-  g /= 255;
-  b /= 255;
-  const max = Math.max(r, g, b),
-    min = Math.min(r, g, b);
-  let h = 0,
-    s = 0,
-    l = (max + min) / 2;
-  if (max !== min) {
-    const d = max - min;
-    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-    switch (max) {
-      case r:
-        h = (g - b) / d + (g < b ? 6 : 0);
-        break;
-      case g:
-        h = (b - r) / d + 2;
-        break;
-      case b:
-        h = (r - g) / d + 4;
-        break;
-    }
-    h /= 6;
-  }
-  return { h: h * 360, s: s * 100, l: l * 100 };
+  const hsl = chroma(hex).hsl();
+  // chroma.js returns h as NaN for grayscale colors, we'll use 0
+  // s and l are in [0, 1], we convert them to [0, 100]
+  return { h: isNaN(hsl[0]) ? 0 : hsl[0], s: hsl[1] * 100, l: hsl[2] * 100 };
 }
 
 // Group by main color (hue, Y axis), sort by tone (lightness, X axis, dark to light)
@@ -97,7 +65,9 @@ function groupAndReflow(
     }
   }
   // Sort each bucket by lightness (dark to light)
-  Object.values(buckets).forEach((arr) => arr.sort((a, b) => a.l - b.l));
+  Object.values(buckets).forEach((arr) =>
+    arr.sort((a, b) => chroma(a.rgb).hcl()[2] - chroma(b.rgb).hcl()[2]),
+  );
   // Flatten buckets in hue order (grays last)
   const sortedKeys = Object.keys(buckets)
     .map(Number)
@@ -150,3 +120,15 @@ export const palette2D: ColorHSL[][] = groupAndReflow(
   15,
   6,
 );
+
+// Sort colors using chroma.js perceptual sort (by hue, luminance, chroma)
+export function getSortedColorPalette(): Color[] {
+  return [...colorPalette].sort((a, b) => {
+    // chroma.sort expects array, so we use chroma.deltaE for perceptual diff
+    // But for palette, sort by HCL (hue, chroma, luminance)
+    const hclA = chroma(a.rgb).hcl();
+    const hclB = chroma(b.rgb).hcl();
+    // Sort by hue, then chroma, then luminance
+    return hclB[0] - hclA[0] || hclB[1] - hclA[1] || hclB[2] - hclA[2];
+  });
+}
