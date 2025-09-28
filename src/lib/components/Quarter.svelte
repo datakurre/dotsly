@@ -6,12 +6,17 @@
 <style>
   .quarter-container {
     width: 100%;
-    height: 100%;
     aspect-ratio: 1 / 1;
+    display: block;
+  }
+  svg {
+    width: 100%;
+    height: 100%;
+    display: block;
   }
 </style>
 
-<div class="quarter-container" style="margin-top: -25%">
+<div class="quarter-container">
   <svg
     width="100%"
     height="100%"

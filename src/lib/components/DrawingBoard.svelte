@@ -26,6 +26,7 @@
   export let paintMode = false;
   export let colorPickerMode = false;
   export let toolbarPosition: ToolbarPosition = "left";
+  export let quarterRotation = 0;
 
   // Local state
   let localGrid: Grid;
@@ -121,7 +122,7 @@
       localGrid[idx] = {
         shape: selectedShape,
         color: selectedColor,
-        rotation: 0,
+        rotation: selectedShape === "quarter" ? quarterRotation : 0,
       };
       // Check neighbors (left, right, up, down)
       const x = idx % width;
@@ -138,6 +139,12 @@
     const cell = localGrid[i];
     if (cell && cell.shape === "quarter" && cell.color === selectedColor) {
       localGrid[i] = { ...cell, rotation: (cell.rotation + 1) % 4 };
+    } else if (selectedShape === "quarter") {
+      localGrid[i] = {
+        shape: selectedShape,
+        color: selectedColor,
+        rotation: quarterRotation,
+      };
     } else {
       localGrid[i] = {
         shape: selectedShape,

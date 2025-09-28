@@ -18,8 +18,13 @@
   }
   let colorPickerMode = false;
 
+  let quarterRotation = 0;
   function handleShapeSelected(event: CustomEvent) {
     selectedShape = event.detail.shape;
+  }
+
+  function handleQuarterRotationChanged(event: CustomEvent) {
+    quarterRotation = event.detail.rotation;
   }
 
   function handleColorSelected(event: CustomEvent) {
@@ -68,6 +73,7 @@
     on:colorPickerModeToggled={handleColorPickerModeToggled}
     on:zoomIn={handleZoomIn}
     on:zoomOut={handleZoomOut}
+    on:quarterRotationChanged={handleQuarterRotationChanged}
     bind:toolbarPosition
     bind:selectedColor
   />
@@ -82,6 +88,7 @@
       {colorPickerMode}
       {toolbarPosition}
       {zoom}
+      {quarterRotation}
       on:colorPicked={handleColorPicked}
     />
   {:else}
@@ -94,6 +101,7 @@
       {colorPickerMode}
       {toolbarPosition}
       {zoom}
+      {quarterRotation}
       on:colorPicked={handleColorPicked}
     />
   {/if}

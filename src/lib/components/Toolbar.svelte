@@ -40,9 +40,22 @@
     colorPalette.length > 0 ? colorPalette[0].rgb : "#000000";
   export { colorPickerMode };
 
+  let quarterRotation = 0;
   function selectShape(shape: string) {
+    if (shape === "quarter") {
+      if (selectedShape === "quarter") {
+        quarterRotation = (quarterRotation + 1) % 4;
+        dispatch("quarterRotationChanged", { rotation: quarterRotation });
+        return;
+      } else {
+        quarterRotation = 0;
+      }
+    }
     selectedShape = shape;
     dispatch("shapeSelected", { shape });
+    if (shape === "quarter") {
+      dispatch("quarterRotationChanged", { rotation: quarterRotation });
+    }
   }
 
   function selectColor(event: Event) {
@@ -163,10 +176,10 @@
         class:selected={selectedShape === "quarter"}
         class="shape-button"
         aria-label="Quarter"
-        title="Quarter - Draw quarter tile shapes"
+        title="Quarter - Draw quarter tile shapes (click again to rotate)"
       >
         <div class="shape-icon">
-          <Quarter color={selectedColor} rotation={0} />
+          <Quarter color={selectedColor} rotation={quarterRotation} />
         </div>
       </button>
     </div>
