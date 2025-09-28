@@ -22,7 +22,7 @@
     if (colorPickerMode) paintMode = false;
     dispatch("colorPickerModeToggled", { colorPickerMode });
   }
-  import { palette2D, getColorHSLs } from "../colors";
+  import { palette2D, colorPalette } from "../colors";
 
   function selectColorFromPalette(color: string) {
     selectedColor = color;
@@ -36,7 +36,8 @@
   const dispatch = createEventDispatcher();
 
   export let selectedShape = "square";
-  export let selectedColor = "#000000";
+  export let selectedColor =
+    colorPalette.length > 0 ? colorPalette[0].rgb : "#000000";
   export { colorPickerMode };
 
   function selectShape(shape: string) {
@@ -64,7 +65,7 @@
 
   let colorSearch = "";
   let colorDropdownOpen = false;
-  let allColors = getColorHSLs();
+  let allColors = colorPalette; // Use only colors available in sets
   let filteredColors = allColors;
 
   $: filteredColors = colorSearch.trim()

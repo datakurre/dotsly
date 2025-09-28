@@ -1,11 +1,11 @@
 <script lang="ts">
   import DrawingBoard from "$lib/components/DrawingBoard.svelte";
   import Toolbar from "$lib/components/Toolbar.svelte";
-  import { palette2D } from "$lib/colors";
+  import { palette2D, colorPalette } from "$lib/colors";
   import { processImageToGrid } from "$lib/utils/processImageToGrid";
 
   let selectedShape = "square";
-  let selectedColor = "#000000";
+  let selectedColor = colorPalette.length > 0 ? colorPalette[0].rgb : "#000000";
   let grid = null;
   let paintMode = false;
   let toolbarPosition: "left" | "top" = "left";
