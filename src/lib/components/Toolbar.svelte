@@ -30,7 +30,7 @@
   }
   import Square from "./Square.svelte";
   import Circle from "./Circle.svelte";
-  import Arch from "./Arch.svelte";
+  import Quarter from "./Quarter.svelte";
   import { createEventDispatcher } from "svelte";
 
   const dispatch = createEventDispatcher();
@@ -159,14 +159,14 @@
         </div>
       </button>
       <button
-        on:click={() => selectShape("arch")}
-        class:selected={selectedShape === "arch"}
+        on:click={() => selectShape("quarter")}
+        class:selected={selectedShape === "quarter"}
         class="shape-button"
-        aria-label="Arch"
-        title="Arch - Draw arch shapes"
+        aria-label="Quarter"
+        title="Quarter - Draw quarter tile shapes"
       >
         <div class="shape-icon">
-          <Arch color={selectedColor} rotation={0} />
+          <Quarter color={selectedColor} rotation={0} />
         </div>
       </button>
     </div>

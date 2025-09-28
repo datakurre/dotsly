@@ -2,7 +2,7 @@
   import { createEventDispatcher } from "svelte";
   import Square from "./Square.svelte";
   import Circle from "./Circle.svelte";
-  import Arch from "./Arch.svelte";
+  import Quarter from "./Quarter.svelte";
   import { colorPalette } from "../colors";
   import type {
     Grid,
@@ -136,7 +136,7 @@
 
   function draw(i: number) {
     const cell = localGrid[i];
-    if (cell && cell.shape === "arch" && cell.color === selectedColor) {
+    if (cell && cell.shape === "quarter" && cell.color === selectedColor) {
       localGrid[i] = { ...cell, rotation: (cell.rotation + 1) % 4 };
     } else {
       localGrid[i] = {
@@ -264,8 +264,8 @@
             <Square color={cell.color} />
           {:else if cell.shape === "circle"}
             <Circle color={cell.color} />
-          {:else if cell.shape === "arch"}
-            <Arch color={cell.color} rotation={cell.rotation} />
+          {:else if cell.shape === "quarter"}
+            <Quarter color={cell.color} rotation={cell.rotation} />
           {/if}
         {/if}
       </div>

@@ -3,6 +3,8 @@
   export let rotation = 0;
 </script>
 
+<!-- Renamed component: Quarter -->
+
 <style>
   .arch-container {
     width: 100%;
@@ -18,6 +20,7 @@
     viewBox="0 0 100 100"
     preserveAspectRatio="none"
   >
-    <circle cx="0" cy="0" r="100" fill={color} />
+    <!-- Draw a quarter-arc as if it is part of a 2x2 tile circle -->
+    <path d="M 1,99 L 1,1 A 98,98 0 0,1 99,99 Z" fill={color} stroke="none" />
   </svg>
 </div>
