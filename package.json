@@ -38,6 +38,7 @@
     "vitest": "^1.0.4"
   },
   "dependencies": {
+    "canvas": "^2.11.2",
     "chroma-js": "^3.1.2",
     "lucide-svelte": "^0.544.0"
   }

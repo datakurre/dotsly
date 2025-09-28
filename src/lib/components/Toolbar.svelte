@@ -1,7 +1,7 @@
 <script lang="ts">
   import "./Toolbar.css";
   import { createEventDispatcher } from "svelte";
-  import { colorPalette, getSortedColorPalette } from "../colors";
+  import { colorPalette } from "../colors";
   import ColorPicker from "./ColorPicker.svelte";
   import ShapeSelector from "./ShapeSelector.svelte";
   import ToolSelector from "./ToolSelector.svelte";
@@ -12,10 +12,7 @@
   const dispatch = createEventDispatcher();
 
   export let selectedShape = "square";
-  // Use sorted palette for ColorPicker
-  const sortedColorPalette = getSortedColorPalette();
-  export let selectedColor =
-    sortedColorPalette.length > 0 ? sortedColorPalette[0].rgb : "#000000";
+  export let selectedColor = "#000000";
   export let paintMode = false;
   export let colorPickerMode = false;
   export let selectMode = false;

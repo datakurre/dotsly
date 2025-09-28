@@ -1,18 +1,17 @@
 <script lang="ts">
   import { tick } from "svelte";
   import { createEventDispatcher } from "svelte";
-  import { palette2D, getSortedColorPalette } from "../colors";
+  import { palette2D, colorPalette } from "../colors";
+  import type { Color } from "../types";
 
-  const colorPalette = getSortedColorPalette();
+  export let selectedColor: string | null = null;
+
   const dispatch = createEventDispatcher();
 
-  export let selectedColor =
-    colorPalette.length > 0 ? colorPalette[0].rgb : "#000000";
-
   let colorSearch = "";
+  let allColors: Color[] = colorPalette;
   let colorDropdownOpen = false;
   let colorSearchInput: HTMLInputElement | null = null;
-  let allColors = colorPalette;
   let filteredColors = allColors;
   let colorDropdownEnabled = false;
 

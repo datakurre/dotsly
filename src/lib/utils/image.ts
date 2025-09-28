@@ -22,7 +22,10 @@ export function hexToRgb(hex: string): { r: number; g: number; b: number } {
   throw new Error(`Invalid hex color: ${hex}`);
 }
 
-// Find closest color in palette with brightness-aware matching
+/**
+ * Find the closest color in the palette using perceptual color matching.
+ * Simplified approach with deltaE base + targeted bonuses for light colors and vibrancy.
+ */
 export function findClosestColor(
   r: number,
   g: number,
@@ -31,61 +34,49 @@ export function findClosestColor(
 ): string {
   const inputColor = chroma(r, g, b);
   const inputLab = inputColor.lab();
-  const inputHcl = inputColor.hcl();
-  const inputLightness = inputHcl[2];
-  const inputHue = inputHcl[0];
+  const [inputHue, inputChroma, inputLightness] = inputColor.hcl();
 
   let closestHex = colorPalette[0];
-  let minScore = Infinity;
+  let minDistance = Infinity;
 
   for (const hex of colorPalette) {
     const paletteColor = chroma(hex);
-    const paletteHcl = paletteColor.hcl();
-    const paletteLightness = paletteHcl[2];
+    const paletteLab = paletteColor.lab();
+    const [paletteHue, paletteChroma, paletteLightness] = paletteColor.hcl();
 
-    // Base color distance in LAB space
-    const colorDistance = chroma.deltaE(inputLab, paletteColor.lab());
+    // Use deltaE as the base - it's perceptually accurate
+    let distance = chroma.deltaE(inputLab, paletteLab);
 
-    // Brightness penalty: prefer darker colors for bright input colors
-    let brightnessPenalty = 0;
-    if (inputLightness > 60) {
-      // If input is bright
-      // Penalize colors that are brighter than input
-      if (paletteLightness > inputLightness) {
-        brightnessPenalty = (paletteLightness - inputLightness) * 2;
-      }
-      // Bonus for darker colors
-      else if (paletteLightness < inputLightness * 0.8) {
-        brightnessPenalty = -Math.min(15, inputLightness - paletteLightness);
-      }
+    // Apply targeted bonuses for specific cases
+
+    // Light color preservation - critical for the PNG colors
+    if (inputLightness > 85 && paletteLightness > 75) {
+      distance *= 0.6; // Strong bonus for very light colors
+    } else if (inputLightness > 70 && paletteLightness > 65) {
+      distance *= 0.8; // Moderate bonus for light colors
     }
 
-    // Special handling for blue colors
-    let blueBonus = 0;
-    if (!isNaN(inputHue) && inputHue >= 200 && inputHue <= 280) {
-      // Blue range
-      const paletteHue = paletteHcl[0];
-      if (!isNaN(paletteHue)) {
-        // Bonus for Dark Bluish Gray and Dark Turquoise for blue inputs
-        if (hex === "#6C6E68" || hex === "#008F9B") {
-          // Dark Bluish Gray or Dark Turquoise
-          blueBonus = -10;
-        }
-        // Bonus for colors in blue-cyan range
-        else if (
-          (paletteHue >= 180 && paletteHue <= 220) || // Cyan-blue
-          (paletteHue >= 200 && paletteHue <= 280)
-        ) {
-          // Blue range
-          blueBonus = -5;
-        }
+    // Enhanced vibrancy preference - prefer vibrant colors when available
+    if (inputChroma > 40) {
+      if (paletteChroma > inputChroma * 0.7) {
+        distance *= 0.6; // Strong bonus for maintaining high chroma
+      } else if (paletteChroma > 30) {
+        distance *= 0.8; // Moderate bonus for reasonably vibrant colors
       }
+    } else if (inputChroma > 20 && paletteChroma > 25) {
+      // Even moderately colorful inputs prefer vibrant palette colors
+      distance *= 0.85; // Light bonus for vibrant options
     }
 
-    const totalScore = colorDistance + brightnessPenalty + blueBonus;
+    // Avoid mapping grayscale to overly colorful unless very close
+    const inputIsGray = inputChroma < 15;
+    const paletteIsVibrant = paletteChroma > 45;
+    if (inputIsGray && paletteIsVibrant && distance > 10) {
+      distance *= 1.4; // Penalty for gray-to-vibrant unless very close match
+    }
 
-    if (totalScore < minScore) {
-      minScore = totalScore;
+    if (distance < minDistance) {
+      minDistance = distance;
       closestHex = hex;
     }
   }
@@ -93,13 +84,104 @@ export function findClosestColor(
   return closestHex;
 }
 
+/**
+ * Determine if a position is on the edge of the grid for shape selection.
+ */
+export function isEdgePosition(
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+): boolean {
+  return x === 0 || y === 0 || x === width - 1 || y === height - 1;
+}
+
+/**
+ * Map brightness to LEGO DOTS shapes with edge-aware preferences.
+ *
+ * Strategy:
+ * - Dark areas: quarters (minimal presence)
+ * - Medium areas: circles (moderate presence)
+ * - Bright areas: squares (maximum presence)
+ * - Edges: prefer half-circles and quarters for better blending
+ * - Interior: prefer squares and circles for maximum contrast
+ */
 export function mapBrightnessToShape(
   brightness: number,
-  isEdge: boolean,
+  isEdge: boolean = false,
 ): string {
-  if (brightness < 51) return "quarter"; // 0-20%
-  if (brightness < 102) return "circle"; // 20-40%
-  if (brightness < 153) return "halfCircle"; // 40-60%
-  if (brightness < 204) return "square"; // 60-80%
-  return "empty"; // 80-100%
+  // Convert RGB brightness (0-255) to normalized value (0-1)
+  const normalizedBrightness = brightness / 255;
+
+  if (isEdge) {
+    // Edge tiles: use shapes that blend better with surroundings
+    if (normalizedBrightness < 0.2) return "quarter";
+    if (normalizedBrightness < 0.5) return "halfCircle";
+    if (normalizedBrightness < 0.8) return "circle";
+    return "square"; // Very bright edges still need visibility
+  } else {
+    // Interior tiles: strongly prefer squares for maximum visibility and contrast
+    if (normalizedBrightness < 0.1) return "quarter"; // Only very dark areas
+    if (normalizedBrightness < 0.25) return "circle"; // Dark-medium areas
+    return "square"; // Default to square for most interior areas
+  }
+}
+
+/**
+ * Analyze color properties for debugging and optimization.
+ */
+export function analyzeColor(r: number, g: number, b: number) {
+  const color = chroma(r, g, b);
+  const [hue, chromaVal, lightness] = color.hcl();
+
+  return {
+    brightness: (r + g + b) / 3,
+    lightness,
+    chroma: chromaVal || 0,
+    hue: hue || 0,
+    isGrayscale: (chromaVal || 0) < 10,
+    isLight: lightness > 70,
+    isDark: lightness < 30,
+    isVibrant: (chromaVal || 0) > 40,
+  };
+}
+
+// Get color matching score breakdown for debugging
+export function getColorMatchingDetails(
+  inputR: number,
+  inputG: number,
+  inputB: number,
+  targetHex: string,
+): {
+  distance: number;
+  brightnessDiff: number;
+  chromaDiff: number;
+  hueDiff: number;
+  isGrayscaleMatch: boolean;
+} {
+  const inputColor = chroma(inputR, inputG, inputB);
+  const targetColor = chroma(targetHex);
+
+  const [inputHue, inputChroma, inputLightness] = inputColor.hcl();
+  const [targetHue, targetChroma, targetLightness] = targetColor.hcl();
+
+  const inputBrightness = (inputR + inputG + inputB) / 3;
+  const targetRgb = targetColor.rgb();
+  const targetBrightness = (targetRgb[0] + targetRgb[1] + targetRgb[2]) / 3;
+
+  const inputIsGrayscale = inputChroma < 15;
+  const targetIsGrayscale = targetChroma < 15;
+
+  const hueDiff = Math.min(
+    Math.abs(inputHue - targetHue),
+    360 - Math.abs(inputHue - targetHue),
+  );
+
+  return {
+    distance: chroma.deltaE(inputColor.lab(), targetColor.lab()),
+    brightnessDiff: Math.abs(inputBrightness - targetBrightness),
+    chromaDiff: Math.abs(inputChroma - targetChroma),
+    hueDiff: isNaN(hueDiff) ? 0 : hueDiff,
+    isGrayscaleMatch: inputIsGrayscale && targetIsGrayscale,
+  };
 }

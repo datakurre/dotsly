@@ -1,134 +1,141 @@
 /**
- * Color management module for Dotsly
+ * Color management module for Dotsly.
  *
- * This module loads colors from colors.csv and filters them based on availability
- * in the bricks sets (data/sets/*.csv). It ensures that all components (toolbar,
- * palette, image processing) use the same consistent set of colors.
- *
- * Exports:
- * - colorPalette: Array of available colors { id, name, rgb, is_trans }
- * - palette2D: 2D array of colors organized by hue and lightness for UI display
- * - getFilteredColorHSLs(): Function to get colors with HSL values
+ * This module loads colors from `data/colors.csv` and filters them based on
+ * availability in the brick sets located in `data/sets/*.csv`. It provides
+ * different color palette formats for the UI and for image processing.
  */
 
 import type { Color, ColorHSL } from "./types";
 import colorsCsv from "../../data/colors.csv?raw";
 import chroma from "chroma-js";
 
-// Import all CSVs under data/sets (Vite import.meta.glob)
+// Import all CSVs under data/sets (Vite's import.meta.glob)
 const setsCsvModules = import.meta.glob("../../data/sets/*.csv", {
   query: "?raw",
   import: "default",
   eager: true,
 });
 
+/**
+ * Parses a CSV string of color data into an array of Color objects.
+ * @param csv The raw CSV string.
+ * @returns An array of Color objects.
+ */
 export function parseColorsCsv(csv: string): Color[] {
   const lines = csv.trim().split("\n");
-  const header = lines[0].split(",");
   return lines.slice(1).map((line) => {
-    const cols = line.split(",");
+    const [id, name, rgb, is_trans] = line.split(",");
     return {
-      id: Number(cols[0]),
-      name: cols[1],
-      rgb: `#${cols[2]}`,
-      is_trans: cols[3] === "True",
+      id: Number(id),
+      name,
+      rgb: `#${rgb}`,
+      is_trans: is_trans === "True",
     };
   });
 }
 
-// Helper: convert hex to HSL using chroma-js
-function hexToHsl(hex: string): { h: number; s: number; l: number } {
-  const hsl = chroma(hex).hsl();
-  // chroma.js returns h as NaN for grayscale colors, we'll use 0
-  // s and l are in [0, 1], we convert them to [0, 100]
-  return { h: isNaN(hsl[0]) ? 0 : hsl[0], s: hsl[1] * 100, l: hsl[2] * 100 };
-}
-
-// Group by main color (hue, Y axis), sort by tone (lightness, X axis, dark to light)
-
-// Group colors by hue buckets (e.g. 24 buckets, 15deg each), then reflow to max 5 per row, no duplicates
-function groupAndReflow(
-  colors: ColorHSL[],
-  bucketSize = 15,
-  maxPerRow = 5,
-): ColorHSL[][] {
-  const buckets: { [bucket: number]: ColorHSL[] } = {};
-  const seen = new Set<string>();
-  for (const color of colors) {
-    // Gray/white/black: treat as special bucket (hue undefined, low sat)
-    const bucket = color.s < 10 ? 999 : Math.floor(color.h / bucketSize);
-    if (!buckets[bucket]) buckets[bucket] = [];
-    // Avoid duplicates by rgb
-    if (!seen.has(color.rgb)) {
-      buckets[bucket].push(color);
-      seen.add(color.rgb);
-    }
-  }
-  // Sort each bucket by lightness (dark to light)
-  Object.values(buckets).forEach((arr) =>
-    arr.sort((a, b) => chroma(a.rgb).hcl()[2] - chroma(b.rgb).hcl()[2]),
-  );
-  // Flatten buckets in hue order (grays last)
-  const sortedKeys = Object.keys(buckets)
-    .map(Number)
-    .sort((a, b) => a - b);
-  const allColors: ColorHSL[] = sortedKeys.flatMap((k) => buckets[k]);
-  // Reflow into rows of maxPerRow
-  const rows: ColorHSL[][] = [];
-  for (let i = 0; i < allColors.length; i += maxPerRow) {
-    rows.push(allColors.slice(i, i + maxPerRow));
-  }
-  return rows;
-}
-
-// Helper: get all color IDs used in any set
-function getUsedColorIdsFromSets(): Set<number> {
+/**
+ * Extracts all unique color IDs from the available brick sets.
+ * @returns A Set of numeric color IDs.
+ */
+function getAvailableColorIds(): Set<number> {
   const colorIds = new Set<number>();
-  for (const key in setsCsvModules) {
-    const csv: string = setsCsvModules[key] as string;
+  for (const path in setsCsvModules) {
+    const csv = setsCsvModules[path] as string;
     const lines = csv.trim().split("\n");
     for (const line of lines.slice(1)) {
-      // skip header
-      const cols = line.split(",");
-      if (cols.length > 1) {
-        const colorId = Number(cols[1]);
-        if (!isNaN(colorId)) colorIds.add(colorId);
+      const colorId = Number(line.split(",")[1]);
+      if (!isNaN(colorId)) {
+        colorIds.add(colorId);
       }
     }
   }
   return colorIds;
 }
 
-const usedColorIds = getUsedColorIdsFromSets();
-
-// Export filtered color palette (only colors available in sets and not containing 'Trans-Clear')
-export const colorPalette: Color[] = parseColorsCsv(colorsCsv).filter(
-  (c) => usedColorIds.has(c.id) && !c.name.includes("Trans-Clear"),
-);
-
-// Export filtered color palette with HSL values
-export function getFilteredColorHSLs(): ColorHSL[] {
-  return colorPalette.map((c) => {
-    const hsl = hexToHsl(c.rgb);
-    return { ...c, ...hsl };
-  });
+/**
+ * Converts a HEX color to an HSL object.
+ * @param hex The hex color string.
+ * @returns An object with h, s, l properties.
+ */
+function hexToHsl(hex: string): { h: number; s: number; l: number } {
+  const hsl = chroma(hex).hsl();
+  return {
+    h: isNaN(hsl[0]) ? 0 : hsl[0], // Handle grayscale
+    s: hsl[1] * 100,
+    l: hsl[2] * 100,
+  };
 }
 
-// Export 2D palette for UI display (6 colors per row)
-export const palette2D: ColorHSL[][] = groupAndReflow(
-  getFilteredColorHSLs(),
-  15,
-  6,
+/**
+ * Groups colors into a 2D array for UI display.
+ * Colors are bucketed by hue and then sorted by lightness.
+ * @param colors An array of colors with HSL values.
+ * @param bucketSize The hue range for each bucket.
+ * @param maxPerRow The maximum number of colors per row in the output array.
+ * @returns A 2D array of ColorHSL objects.
+ */
+function groupColorsForUI(
+  colors: ColorHSL[],
+  bucketSize = 15,
+  maxPerRow = 6,
+): ColorHSL[][] {
+  const buckets: Record<number, ColorHSL[]> = {};
+  const seen = new Set<string>();
+
+  for (const color of colors) {
+    if (seen.has(color.rgb)) continue;
+    seen.add(color.rgb);
+
+    const bucket = color.s < 10 ? 999 : Math.floor(color.h / bucketSize);
+    if (!buckets[bucket]) {
+      buckets[bucket] = [];
+    }
+    buckets[bucket].push(color);
+  }
+
+  Object.values(buckets).forEach((bucket) => bucket.sort((a, b) => a.l - b.l));
+
+  const sortedBuckets = Object.keys(buckets)
+    .map(Number)
+    .sort((a, b) => a - b)
+    .flatMap((key) => buckets[key]);
+
+  const rows: ColorHSL[][] = [];
+  for (let i = 0; i < sortedBuckets.length; i += maxPerRow) {
+    rows.push(sortedBuckets.slice(i, i + maxPerRow));
+  }
+  return rows;
+}
+
+// Main logic to build the color palettes
+const allColors = parseColorsCsv(colorsCsv);
+const availableColorIds = getAvailableColorIds();
+
+/**
+ * The primary color palette, containing only colors available in the sets.
+ * Filters out "Trans-Clear" as it's not typically used for mosaics.
+ */
+export const colorPalette: Color[] = allColors.filter(
+  (c) => availableColorIds.has(c.id) && !c.name.includes("Trans-Clear"),
 );
 
-// Sort colors using chroma.js perceptual sort (by hue, luminance, chroma)
-export function getSortedColorPalette(): Color[] {
-  return [...colorPalette].sort((a, b) => {
-    // chroma.sort expects array, so we use chroma.deltaE for perceptual diff
-    // But for palette, sort by HCL (hue, chroma, luminance)
-    const hclA = chroma(a.rgb).hcl();
-    const hclB = chroma(b.rgb).hcl();
-    // Sort by hue, then chroma, then luminance
-    return hclB[0] - hclA[0] || hclB[1] - hclA[1] || hclB[2] - hclA[2];
-  });
-}
+/**
+ * A 2D color palette for the UI, grouped by hue and sorted by lightness.
+ */
+export const palette2D: ColorHSL[][] = groupColorsForUI(
+  colorPalette.map((c) => ({ ...c, ...hexToHsl(c.rgb) })),
+);
+
+/**
+ * A color palette sorted perceptually by HCL values (Hue, Chroma, Luminance).
+ * This is optimized for image processing tasks to find the closest color.
+ */
+export const imageColorPalette: Color[] = [...colorPalette].sort((a, b) => {
+  const [hA, cA, lA] = chroma(a.rgb).hcl();
+  const [hB, cB, lB] = chroma(b.rgb).hcl();
+  if (hA !== hB) return hA - hB;
+  if (cA !== cB) return cA - cB;
+  return lA - lB;
+});

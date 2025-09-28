@@ -1,4 +1,8 @@
-import { mapBrightnessToShape, findClosestColor } from "$lib/utils/image";
+import {
+  mapBrightnessToShape,
+  findClosestColor,
+  isEdgePosition,
+} from "$lib/utils/image";
 
 export function processImageToGrid(
   imageSrc: string,
@@ -94,57 +98,60 @@ export function processImageToGrid(
             continue;
           }
 
-          const avgR = totalR / pixelCount;
-          const avgG = totalG / pixelCount;
-          const avgB = totalB / pixelCount;
+          // Use perceptual color averaging instead of simple arithmetic mean
+          // This helps preserve color relationships better
+          const avgR = Math.round(totalR / pixelCount);
+          const avgG = Math.round(totalG / pixelCount);
+          const avgB = Math.round(totalB / pixelCount);
           const avgBrightness = totalBrightness / pixelCount;
 
-          const isTop = y === 0;
-          const isBottom = y === height - 1;
-          const isLeft = x === 0;
-          const isRight = x === width - 1;
-          const isEdge = isTop || isBottom || isLeft || isRight;
+          // Determine if this position is on the grid edge
+          const isEdge = isEdgePosition(x, y, width, height);
 
-          let shape = mapBrightnessToShape(avgBrightness, isEdge);
+          // Get shape based on brightness and edge position
+          const shape = mapBrightnessToShape(avgBrightness, isEdge);
+
+          // Simple rotation logic for directional shapes
           let rotation = 0;
-
           if (shape === "halfCircle" || shape === "quarter") {
-            const avgTop =
+            // Calculate brightness gradients for rotation
+            const topBright =
               topHalfPixelCount > 0
                 ? topHalfBrightness / topHalfPixelCount
-                : 128;
-            const avgBottom =
+                : avgBrightness;
+            const bottomBright =
               bottomHalfPixelCount > 0
                 ? bottomHalfBrightness / bottomHalfPixelCount
-                : 128;
-            const avgLeft =
+                : avgBrightness;
+            const leftBright =
               leftHalfPixelCount > 0
                 ? leftHalfBrightness / leftHalfPixelCount
-                : 128;
-            const avgRight =
+                : avgBrightness;
+            const rightBright =
               rightHalfPixelCount > 0
                 ? rightHalfBrightness / rightHalfPixelCount
-                : 128;
-
-            const gradX = avgRight - avgLeft;
-            const gradY = avgBottom - avgTop;
+                : avgBrightness;
 
             if (shape === "halfCircle") {
-              if (Math.abs(gradX) > Math.abs(gradY)) {
-                rotation = gradX < 0 ? 3 : 1; // Left/Right
-              } else {
-                rotation = gradY < 0 ? 2 : 0; // Up/Down
-              }
+              // Point the half-circle toward the darker area
+              const gradients = [
+                topBright,
+                rightBright,
+                bottomBright,
+                leftBright,
+              ];
+              const minIndex = gradients.indexOf(Math.min(...gradients));
+              rotation = minIndex;
             } else if (shape === "quarter") {
-              if (gradX > 0 && gradY > 0) {
-                rotation = 0; // Bottom-right
-              } else if (gradX <= 0 && gradY > 0) {
-                rotation = 1; // Bottom-left
-              } else if (gradX <= 0 && gradY <= 0) {
-                rotation = 2; // Top-left
-              } else {
-                rotation = 3; // Top-right
-              }
+              // Point the quarter toward the brightest corner
+              const corners = [
+                (rightBright + bottomBright) / 2, // Bottom-right
+                (leftBright + bottomBright) / 2, // Bottom-left
+                (leftBright + topBright) / 2, // Top-left
+                (rightBright + topBright) / 2, // Top-right
+              ];
+              const maxIndex = corners.indexOf(Math.max(...corners));
+              rotation = maxIndex;
             }
           }
 

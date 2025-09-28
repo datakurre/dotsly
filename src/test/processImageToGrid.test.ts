@@ -53,7 +53,7 @@ describe("processImageToGrid", () => {
     const result = await processImageToGrid(mockImageSrc, colorPalette, 1, 1);
 
     expect(result).toHaveLength(1);
-    // With brightness 128 (medium gray), should map to 'halfCircle' according to new mapping
-    expect(result[0].shape).toBe("halfCircle");
+    // With brightness 128 (medium gray), should map to circle (128/255 = 0.5, above 0.45 threshold)
+    expect(result[0].shape).toBe("circle");
   });
 });
