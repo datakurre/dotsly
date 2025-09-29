@@ -117,10 +117,10 @@ const availableColorIds = getAvailableColorIds();
 
 /**
  * The primary color palette, containing only colors available in the sets.
- * Filters out "Trans-Clear" as it's not typically used for mosaics.
+ * Filters out transparent colors as they are not typically used for mosaics.
  */
 export const colorPalette: Color[] = allColors.filter(
-  (c) => availableColorIds.has(c.id) && !c.name.includes("Trans-Clear"),
+  (c) => availableColorIds.has(c.id) && !c.name.includes("Trans"),
 );
 
 /**
