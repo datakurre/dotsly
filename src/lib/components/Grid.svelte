@@ -30,6 +30,7 @@
   // Selection state
   let isSelecting = false;
   let selectionStart = { x: 0, y: 0 };
+  let bordersVisible = true;
 
   // Flood fill for painting adjacent blocks
   function paint(i: number) {
@@ -173,15 +174,23 @@
     }
   }
 
+  function handleKeydown(event: KeyboardEvent) {
+    if (event.key === "g") {
+      bordersVisible = !bordersVisible;
+    }
+  }
+
   onMount(() => {
     if (typeof window !== "undefined") {
       window.addEventListener("mouseup", handleGlobalMouseUp);
+      window.addEventListener("keydown", handleKeydown);
     }
   });
 
   onDestroy(() => {
     if (typeof window !== "undefined") {
       window.removeEventListener("mouseup", handleGlobalMouseUp);
+      window.removeEventListener("keydown", handleKeydown);
     }
   });
 
@@ -228,12 +237,16 @@
   .cell {
     cursor: pointer;
     aspect-ratio: 1 / 1;
-    border: 1px solid #ddd;
+    border: 0.5px solid #ddd;
     position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: background 0.1s;
+  }
+
+  .cell.no-border {
+    border: none;
   }
 
   .cell:hover {
@@ -289,7 +302,7 @@
     <div
       class="cell {isCellSelected(i) ? 'selected' : ''} {selectMode
         ? 'select-mode'
-        : ''}"
+        : ''} {!bordersVisible ? 'no-border' : ''}"
       role="button"
       tabindex="0"
       on:click={(e) => handleCellClick(i, e)}
