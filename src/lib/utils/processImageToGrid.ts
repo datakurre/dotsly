@@ -1,4 +1,4 @@
-import { converter } from "culori";
+import { converter, differenceEuclidean } from "culori";
 import { findClosestColor, type PaletteColor } from "$lib/utils/image";
 
 const oklabConverter = converter("oklab");
@@ -126,48 +126,125 @@ export function processImageToGrid(
           let rotation = 0;
           let color = mainColor.hex;
 
-          const uniqueQuadrantColors = [
-            ...new Set(quadrantColors.map((c) => c.hex)),
-          ];
+          // This new logic attempts to find the best shape by simplifying the quadrant colors.
+          // It can reduce 3 or 4 color quadrants into 2-color cases to better use quarter and half-circles.
+          // It also uses circles for high-contrast diagonal patterns instead of falling back to a plain square.
+          let tempQuadrantColors = [...quadrantColors];
+          for (let simplification = 0; simplification < 3; simplification++) {
+            const uniqueQuadrantColors = [
+              ...new Set(tempQuadrantColors.map((c) => c.hex)),
+            ];
 
-          if (uniqueQuadrantColors.length === 1) {
-            shape = "square";
-          } else if (uniqueQuadrantColors.length === 2) {
-            const colorA = uniqueQuadrantColors[0];
-            const countA = quadrantColors.filter(
-              (c) => c.hex === colorA,
-            ).length;
+            if (uniqueQuadrantColors.length === 1) {
+              shape = "square";
+              color = uniqueQuadrantColors[0];
+              break; // Simplest form, we are done.
+            }
 
-            if (countA === 1 || countA === 3) {
-              shape = "quarter";
-              const outlierColorHex =
-                countA === 1 ? colorA : uniqueQuadrantColors[1];
-              const mainAreaColorHex =
-                countA === 3 ? colorA : uniqueQuadrantColors[1];
-              const outlierIndex = quadrantColors.findIndex(
-                (c) => c.hex === outlierColorHex,
-              );
-              color = mainAreaColorHex;
-              // Rotation: 0=BR, 1=BL, 2=TL, 3=TR (based on old code's corner logic)
-              const rotationMap = [2, 3, 1, 0]; // TL, TR, BL, BR -> rotation
-              rotation = rotationMap[outlierIndex];
-            } else {
-              // countA === 2
-              if (tl.hex === tr.hex && bl.hex === br.hex) {
-                shape = "halfCircle";
-                // Point towards the minority color
-                rotation = tl.hex === mainColor.hex ? 2 : 0;
-              } else if (tl.hex === bl.hex && tr.hex === br.hex) {
-                shape = "halfCircle";
-                rotation = tl.hex === mainColor.hex ? 1 : 3;
+            if (uniqueQuadrantColors.length === 2) {
+              const colorA = uniqueQuadrantColors[0];
+              const countA = tempQuadrantColors.filter(
+                (c) => c.hex === colorA,
+              ).length;
+
+              if (countA === 1 || countA === 3) {
+                shape = "quarter";
+                const outlierColorHex =
+                  countA === 1 ? colorA : uniqueQuadrantColors[1];
+                const mainAreaColorHex =
+                  countA === 3 ? colorA : uniqueQuadrantColors[1];
+                const outlierIndex = tempQuadrantColors.findIndex(
+                  (c) => c.hex === outlierColorHex,
+                );
+                color = mainAreaColorHex;
+                const rotationMap = [2, 3, 1, 0]; // TL, TR, BL, BR -> rotation
+                rotation = rotationMap[outlierIndex];
               } else {
-                // Diagonal or complex, fallback to square
-                shape = "square";
+                // countA === 2
+                const [q_tl, q_tr, q_bl, q_br] = tempQuadrantColors;
+                const isHorizontal =
+                  q_tl.hex === q_tr.hex && q_bl.hex === q_br.hex;
+                const isVertical =
+                  q_tl.hex === q_bl.hex && q_tr.hex === q_br.hex;
+
+                if (isHorizontal || isVertical) {
+                  shape = "halfCircle";
+                  color = mainColor.hex;
+                  if (isHorizontal) {
+                    rotation = q_tl.hex === mainColor.hex ? 2 : 0;
+                  } else {
+                    rotation = q_tl.hex === mainColor.hex ? 1 : 3;
+                  }
+                } else {
+                  // Diagonal split
+                  const colorB = uniqueQuadrantColors[1];
+                  const paletteColorA = labPalette.find(
+                    (p) => p.hex === colorA,
+                  )!;
+                  const paletteColorB = labPalette.find(
+                    (p) => p.hex === colorB,
+                  )!;
+                  const diff = differenceEuclidean("oklab")(
+                    paletteColorA.lab,
+                    paletteColorB.lab,
+                  );
+
+                  // For high-contrast diagonals, use a circle to represent the mixed pattern.
+                  // For low-contrast, a square of the average color is a good approximation.
+                  // The 0.15 threshold is a tunable parameter.
+                  if (diff > 0.15) {
+                    shape = "circle";
+                  } else {
+                    shape = "square";
+                  }
+                  color = mainColor.hex;
+                }
+              }
+              break; // Shape decided
+            }
+
+            // Attempt to simplify if there are more than 2 colors
+            if (uniqueQuadrantColors.length > 2) {
+              let minDiff = Infinity;
+              let pairToMerge: [PaletteColor, PaletteColor] | null = null;
+              const currentUniqueColors = uniqueQuadrantColors.map(
+                (hex) => labPalette.find((p) => p.hex === hex)!,
+              );
+
+              for (let i = 0; i < currentUniqueColors.length; i++) {
+                for (let j = i + 1; j < currentUniqueColors.length; j++) {
+                  const c1 = currentUniqueColors[i];
+                  const c2 = currentUniqueColors[j];
+                  const diff = differenceEuclidean("oklab")(c1.lab, c2.lab);
+                  if (diff < minDiff) {
+                    minDiff = diff;
+                    pairToMerge = [c1, c2];
+                  }
+                }
+              }
+
+              // If the two most similar colors are close enough, merge them and retry.
+              // The 0.05 threshold is a tunable parameter for "similar enough".
+              const SIMILARITY_THRESHOLD = 0.05;
+              if (minDiff < SIMILARITY_THRESHOLD && pairToMerge) {
+                const [c1, c2] = pairToMerge;
+                const mainLab = mainColor.lab;
+                const diff1 = differenceEuclidean("oklab")(mainLab, c1.lab);
+                const diff2 = differenceEuclidean("oklab")(mainLab, c2.lab);
+                const [colorToKeep, colorToReplace] =
+                  diff1 < diff2 ? [c1, c2] : [c2, c1];
+
+                tempQuadrantColors = tempQuadrantColors.map((c) =>
+                  c.hex === colorToReplace.hex ? colorToKeep : c,
+                );
+                // Continue to the next loop iteration with simplified colors
+              } else {
+                // Cannot simplify, the area is complex. Use a circle.
+                shape = "circle";
+                color = mainColor.hex;
+                break; // Shape decided
               }
             }
-          } else {
-            // 3 or 4 unique colors, high detail area
-            shape = "circle";
           }
 
           newGrid.push({ shape, color, rotation });

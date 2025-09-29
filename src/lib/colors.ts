@@ -8,7 +8,7 @@
 
 import type { Color, ColorHSL } from "./types";
 import colorsCsv from "../../data/colors.csv?raw";
-import chroma from "chroma-js";
+import { converter } from "culori";
 
 // Import all CSVs under data/sets (Vite's import.meta.glob)
 const setsCsvModules = import.meta.glob("../../data/sets/*.csv", {
@@ -54,17 +54,19 @@ function getAvailableColorIds(): Set<number> {
   return colorIds;
 }
 
+const hslConverter = converter("hsl");
+
 /**
  * Converts a HEX color to an HSL object.
  * @param hex The hex color string.
  * @returns An object with h, s, l properties.
  */
 function hexToHsl(hex: string): { h: number; s: number; l: number } {
-  const hsl = chroma(hex).hsl();
+  const hsl = hslConverter(hex);
   return {
-    h: isNaN(hsl[0]) ? 0 : hsl[0], // Handle grayscale
-    s: hsl[1] * 100,
-    l: hsl[2] * 100,
+    h: hsl.h ?? 0, // Handle undefined hue for grayscale
+    s: hsl.s * 100,
+    l: hsl.l * 100,
   };
 }
 
@@ -129,13 +131,17 @@ export const palette2D: ColorHSL[][] = groupColorsForUI(
 );
 
 /**
- * A color palette sorted perceptually by HCL values (Hue, Chroma, Luminance).
+ * A color palette sorted perceptually by Oklch values (Luminance, Chroma, Hue).
  * This is optimized for image processing tasks to find the closest color.
  */
+const oklchConverter = converter("oklch");
 export const imageColorPalette: Color[] = [...colorPalette].sort((a, b) => {
-  const [hA, cA, lA] = chroma(a.rgb).hcl();
-  const [hB, cB, lB] = chroma(b.rgb).hcl();
-  if (hA !== hB) return hA - hB;
-  if (cA !== cB) return cA - cB;
-  return lA - lB;
+  const oklchA = oklchConverter(a.rgb);
+  const oklchB = oklchConverter(b.rgb);
+  const hA = oklchA.h ?? 0;
+  const hB = oklchB.h ?? 0;
+  if (Math.round(hA) !== Math.round(hB)) return hA - hB;
+  if (Math.round(oklchA.c * 100) !== Math.round(oklchB.c * 100))
+    return oklchA.c - oklchB.c;
+  return oklchA.l - oklchB.l;
 });
