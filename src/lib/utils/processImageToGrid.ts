@@ -1,8 +1,7 @@
-import {
-  mapBrightnessToShape,
-  findClosestColor,
-  isEdgePosition,
-} from "$lib/utils/image";
+import { converter } from "culori";
+import { findClosestColor, type PaletteColor } from "$lib/utils/image";
+
+const oklabConverter = converter("oklab");
 
 export function processImageToGrid(
   imageSrc: string,
@@ -12,12 +11,19 @@ export function processImageToGrid(
 ): Promise<any[]> {
   return new Promise((resolve, reject) => {
     const image = new window.Image();
+    image.crossOrigin = "Anonymous"; // Allow processing of cross-origin images
     image.src = imageSrc;
+
+    const labPalette: PaletteColor[] = colorPalette.map((hex) => ({
+      hex,
+      lab: oklabConverter(hex),
+    }));
+
     image.onload = () => {
       const originalWidth = image.width;
       const originalHeight = image.height;
       const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
+      const ctx = canvas.getContext("2d", { willReadFrequently: true });
       if (!ctx) {
         reject(new Error("Could not get 2D context"));
         return;
@@ -43,20 +49,14 @@ export function processImageToGrid(
           const endX = Math.floor((x + 1) * blockWidth);
           const endY = Math.floor((y + 1) * blockHeight);
 
-          let totalR = 0;
-          let totalG = 0;
-          let totalB = 0;
-          let totalBrightness = 0;
-          let pixelCount = 0;
-
-          let topHalfBrightness = 0;
-          let topHalfPixelCount = 0;
-          let bottomHalfBrightness = 0;
-          let bottomHalfPixelCount = 0;
-          let leftHalfBrightness = 0;
-          let leftHalfPixelCount = 0;
-          let rightHalfBrightness = 0;
-          let rightHalfPixelCount = 0;
+          const quadrants = [
+            { r: 0, g: 0, b: 0, count: 0, transparent: 0 }, // Top-Left
+            { r: 0, g: 0, b: 0, count: 0, transparent: 0 }, // Top-Right
+            { r: 0, g: 0, b: 0, count: 0, transparent: 0 }, // Bottom-Left
+            { r: 0, g: 0, b: 0, count: 0, transparent: 0 }, // Bottom-Right
+          ];
+          let totalTransparent = 0;
+          const totalPixelsInBlock = (endX - startX) * (endY - startY);
 
           for (let j = startY; j < endY; j++) {
             for (let i = startX; i < endX; i++) {
@@ -66,101 +66,122 @@ export function processImageToGrid(
               const b = imageData[idx + 2];
               const a = imageData[idx + 3];
 
-              if (a > 0) {
-                const brightness = (r + g + b) / 3;
-                totalR += r;
-                totalG += g;
-                totalB += b;
-                totalBrightness += brightness;
-                pixelCount++;
+              if (a < 128) {
+                totalTransparent++;
+              }
 
-                if (j < startY + (endY - startY) / 2) {
-                  topHalfBrightness += brightness;
-                  topHalfPixelCount++;
-                } else {
-                  bottomHalfBrightness += brightness;
-                  bottomHalfPixelCount++;
-                }
+              const quadrantX = i < startX + blockWidth / 2 ? 0 : 1;
+              const quadrantY = j < startY + blockHeight / 2 ? 0 : 1;
+              const quadrantIndex = quadrantY * 2 + quadrantX;
+              const q = quadrants[quadrantIndex];
 
-                if (i < startX + (endX - startX) / 2) {
-                  leftHalfBrightness += brightness;
-                  leftHalfPixelCount++;
-                } else {
-                  rightHalfBrightness += brightness;
-                  rightHalfPixelCount++;
-                }
+              if (a > 128) {
+                q.r += r;
+                q.g += g;
+                q.b += b;
+                q.count++;
+              } else {
+                q.transparent++;
               }
             }
           }
 
-          if (pixelCount === 0) {
+          if (totalTransparent / totalPixelsInBlock > 0.95) {
             newGrid.push({ shape: "empty", color: "#FFFFFF", rotation: 0 });
             continue;
           }
 
-          // Use perceptual color averaging instead of simple arithmetic mean
-          // This helps preserve color relationships better
-          const avgR = Math.round(totalR / pixelCount);
-          const avgG = Math.round(totalG / pixelCount);
-          const avgB = Math.round(totalB / pixelCount);
-          const avgBrightness = totalBrightness / pixelCount;
+          const totalR = quadrants.reduce((sum, q) => sum + q.r, 0);
+          const totalG = quadrants.reduce((sum, q) => sum + q.g, 0);
+          const totalB = quadrants.reduce((sum, q) => sum + q.b, 0);
+          const totalCount = quadrants.reduce((sum, q) => sum + q.count, 0);
 
-          // Determine if this position is on the grid edge
-          const isEdge = isEdgePosition(x, y, width, height);
+          const avgBlockColor = {
+            r: totalR / totalCount,
+            g: totalG / totalCount,
+            b: totalB / totalCount,
+          };
 
-          // Get shape based on brightness and edge position
-          const shape = mapBrightnessToShape(avgBrightness, isEdge);
+          const avgQuadrantColors = quadrants.map((q) => {
+            const qCount = q.count || 1;
+            const r = q.count > 0 ? q.r / qCount : avgBlockColor.r;
+            const g = q.count > 0 ? q.g / qCount : avgBlockColor.g;
+            const b = q.count > 0 ? q.b / qCount : avgBlockColor.b;
+            return { r, g, b };
+          });
 
-          // Simple rotation logic for directional shapes
+          const mainColor = findClosestColor(
+            avgBlockColor.r,
+            avgBlockColor.g,
+            avgBlockColor.b,
+            labPalette,
+          );
+          const quadrantColors = avgQuadrantColors.map((c) =>
+            findClosestColor(c.r, c.g, c.b, labPalette),
+          );
+
+          const [tl, tr, bl, br] = quadrantColors;
+
+          let shape = "square";
           let rotation = 0;
-          if (shape === "halfCircle" || shape === "quarter") {
-            // Calculate brightness gradients for rotation
-            const topBright =
-              topHalfPixelCount > 0
-                ? topHalfBrightness / topHalfPixelCount
-                : avgBrightness;
-            const bottomBright =
-              bottomHalfPixelCount > 0
-                ? bottomHalfBrightness / bottomHalfPixelCount
-                : avgBrightness;
-            const leftBright =
-              leftHalfPixelCount > 0
-                ? leftHalfBrightness / leftHalfPixelCount
-                : avgBrightness;
-            const rightBright =
-              rightHalfPixelCount > 0
-                ? rightHalfBrightness / rightHalfPixelCount
-                : avgBrightness;
+          let color = mainColor.hex;
 
-            if (shape === "halfCircle") {
-              // Point the half-circle toward the darker area
-              const gradients = [
-                topBright,
-                rightBright,
-                bottomBright,
-                leftBright,
-              ];
-              const minIndex = gradients.indexOf(Math.min(...gradients));
-              rotation = minIndex;
-            } else if (shape === "quarter") {
-              // Point the quarter toward the brightest corner
-              const corners = [
-                (rightBright + bottomBright) / 2, // Bottom-right
-                (leftBright + bottomBright) / 2, // Bottom-left
-                (leftBright + topBright) / 2, // Top-left
-                (rightBright + topBright) / 2, // Top-right
-              ];
-              const maxIndex = corners.indexOf(Math.max(...corners));
-              rotation = maxIndex;
+          const uniqueQuadrantColors = [
+            ...new Set(quadrantColors.map((c) => c.hex)),
+          ];
+
+          if (uniqueQuadrantColors.length === 1) {
+            shape = "square";
+          } else if (uniqueQuadrantColors.length === 2) {
+            const colorA = uniqueQuadrantColors[0];
+            const countA = quadrantColors.filter(
+              (c) => c.hex === colorA,
+            ).length;
+
+            if (countA === 1 || countA === 3) {
+              shape = "quarter";
+              const outlierColorHex =
+                countA === 1 ? colorA : uniqueQuadrantColors[1];
+              const mainAreaColorHex =
+                countA === 3 ? colorA : uniqueQuadrantColors[1];
+              const outlierIndex = quadrantColors.findIndex(
+                (c) => c.hex === outlierColorHex,
+              );
+              color = mainAreaColorHex;
+              // Rotation: 0=BR, 1=BL, 2=TL, 3=TR (based on old code's corner logic)
+              const rotationMap = [2, 3, 1, 0]; // TL, TR, BL, BR -> rotation
+              rotation = rotationMap[outlierIndex];
+            } else {
+              // countA === 2
+              if (tl.hex === tr.hex && bl.hex === br.hex) {
+                shape = "halfCircle";
+                // Point towards the minority color
+                rotation = tl.hex === mainColor.hex ? 2 : 0;
+              } else if (tl.hex === bl.hex && tr.hex === br.hex) {
+                shape = "halfCircle";
+                rotation = tl.hex === mainColor.hex ? 1 : 3;
+              } else {
+                // Diagonal or complex, fallback to square
+                shape = "square";
+              }
             }
+          } else {
+            // 3 or 4 unique colors, high detail area
+            shape = "circle";
           }
 
-          const color = findClosestColor(avgR, avgG, avgB, colorPalette);
           newGrid.push({ shape, color, rotation });
         }
       }
       resolve(newGrid);
     };
-    image.onerror = reject;
+    image.onerror = (err) => {
+      console.error("Failed to load image:", image.src, err);
+      reject(
+        new Error(
+          `Failed to load image. Check if the URL is correct and accessible.`,
+        ),
+      );
+    };
   });
 }

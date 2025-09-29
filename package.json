@@ -12,10 +12,10 @@
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
     "format": "prettier --write .",
-    "test": "vitest",
-    "test:watch": "vitest --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "test:ui": "vitest --ui",
-    "test:coverage": "vitest --coverage"
+    "test:coverage": "vitest run --coverage"
   },
   "devDependencies": {
     "@sveltejs/adapter-auto": "^6.0.0",
@@ -40,6 +40,7 @@
   "dependencies": {
     "canvas": "^2.11.2",
     "chroma-js": "^3.1.2",
+    "culori": "^4.0.2",
     "lucide-svelte": "^0.544.0"
   }
 }
