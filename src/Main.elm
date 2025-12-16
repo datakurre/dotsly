@@ -8,6 +8,7 @@ module Main exposing (main)
 
 import Browser
 import Browser.Events
+import Data.Colors
 import Html exposing (Html)
 import Model exposing (Model)
 import Msg exposing (Msg(..))
@@ -21,11 +22,22 @@ import View exposing (view)
 main : Program () Model Msg
 main =
     Browser.element
-        { init = \_ -> Model.init
+        { init = init
         , view = view
         , update = update
         , subscriptions = subscriptions
         }
+
+
+{-| Initialize the application and load colors.
+-}
+init : () -> ( Model, Cmd Msg )
+init _ =
+    let
+        ( model, _ ) =
+            Model.init
+    in
+    ( model, Data.Colors.loadColors ColorsLoaded )
 
 
 {-| Subscriptions for the application.

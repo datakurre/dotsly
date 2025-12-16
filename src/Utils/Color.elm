@@ -59,17 +59,17 @@ rgbToHsl r g b =
                 60 * (modBy 6 (round ((gf - bf) / delta)))
 
             else if maxC == gf then
-                60 * (((bf - rf) / delta) + 2)
+                60 * (round (((bf - rf) / delta) + 2))
 
             else
-                60 * (((rf - gf) / delta) + 4)
+                60 * (round (((rf - gf) / delta) + 4))
 
         hNormalized =
-            if h < 0 then
-                h + 360
+            if toFloat h < 0 then
+                toFloat h + 360
 
             else
-                h
+                toFloat h
     in
     { h = hNormalized, s = s, l = l }
 

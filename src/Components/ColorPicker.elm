@@ -13,30 +13,37 @@ import Model exposing (Model)
 import Msg exposing (Msg(..))
 
 
-{-| View the color picker with some basic colors.
-For now, we'll use a hardcoded palette. In Phase 7, we'll load from CSV.
+{-| View the color picker with loaded colors or fallback to basic colors.
 -}
 view : Model -> Html Msg
 view model =
     let
-        basicColors =
-            [ ( "#05131D", "Black" )
-            , ( "#FFFFFF", "White" )
-            , ( "#C91A09", "Red" )
-            , ( "#0055BF", "Blue" )
-            , ( "#237841", "Green" )
-            , ( "#F2CD37", "Yellow" )
-            , ( "#FF8C00", "Orange" )
-            , ( "#C870A0", "Dark Pink" )
-            , ( "#583927", "Brown" )
-            , ( "#9BA19D", "Light Gray" )
-            , ( "#6D6E5C", "Dark Gray" )
-            , ( "#4B9F4A", "Bright Green" )
-            , ( "#B4D2E3", "Light Blue" )
-            , ( "#FC97AC", "Pink" )
-            , ( "#55A5AF", "Light Turquoise" )
-            , ( "#008F9B", "Dark Turquoise" )
-            ]
+        colors =
+            if List.isEmpty model.colors then
+                -- Fallback colors if CSV not loaded yet
+                [ ( "#05131D", "Black" )
+                , ( "#FFFFFF", "White" )
+                , ( "#C91A09", "Red" )
+                , ( "#0055BF", "Blue" )
+                , ( "#237841", "Green" )
+                , ( "#F2CD37", "Yellow" )
+                , ( "#FF8C00", "Orange" )
+                , ( "#C870A0", "Dark Pink" )
+                , ( "#583927", "Brown" )
+                , ( "#9BA19D", "Light Gray" )
+                , ( "#6D6E5C", "Dark Gray" )
+                , ( "#4B9F4A", "Bright Green" )
+                , ( "#B4D2E3", "Light Blue" )
+                , ( "#FC97AC", "Pink" )
+                , ( "#55A5AF", "Light Turquoise" )
+                , ( "#008F9B", "Dark Turquoise" )
+                ]
+
+            else
+                -- Use loaded colors, take first 32 for the palette
+                model.colors
+                    |> List.take 32
+                    |> List.map (\c -> ( c.rgb, c.name ))
     in
     div []
         [ div [ style "font-weight" "bold", style "margin-bottom" "8px" ] 
@@ -45,8 +52,10 @@ view model =
             [ style "display" "grid"
             , style "grid-template-columns" "repeat(4, 32px)"
             , style "gap" "4px"
+            , style "max-height" "300px"
+            , style "overflow-y" "auto"
             ]
-            (List.map (viewColorSwatch model.primaryColor) basicColors)
+            (List.map (viewColorSwatch model.primaryColor) colors)
         ]
 
 
