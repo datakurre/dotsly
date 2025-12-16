@@ -6,6 +6,7 @@ module View exposing (view)
 
 -}
 
+import Components.ColorPicker
 import Components.DrawingBoard
 import Html exposing (Html, button, div, input, label, text)
 import Html.Attributes exposing (class, style, type_, value)
@@ -56,6 +57,7 @@ viewToolbar model =
         , viewShapeSelector model
         , viewGridSizeControls model
         , viewActions model
+        , Components.ColorPicker.view model
         , viewColorInfo model
         , viewDebugInfo model
         ]
