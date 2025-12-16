@@ -43,38 +43,34 @@ keyDecoder =
     keyComboDecoder
         |> Decode.andThen
             (\combo ->
-                case ( String.toLower combo.key, combo.ctrl || combo.meta, combo.shift, combo.alt ) of
-                    -- Undo/Redo
-                    ( "z", True, False, False ) ->
-                        Decode.succeed Undo
+                let
+                    key =
+                        String.toLower combo.key
 
-                    ( "z", True, True, False ) ->
-                        Decode.succeed Redo
+                    ctrl =
+                        combo.ctrl || combo.meta
+                in
+                if key == "z" && ctrl && combo.shift then
+                    Decode.succeed Redo
 
-                    ( "y", True, False, False ) ->
-                        Decode.succeed Redo
+                else if key == "z" && ctrl then
+                    Decode.succeed Undo
 
-                    -- Clipboard
-                    ( "c", True, False, False ) ->
-                        Decode.succeed Copy
+                else if key == "y" && ctrl then
+                    Decode.succeed Redo
 
-                    ( "x", True, False, False ) ->
-                        Decode.succeed Cut
+                else if key == "c" && ctrl then
+                    Decode.succeed Copy
 
-                    ( "v", True, False, False ) ->
-                        Decode.succeed Paste
+                else if key == "x" && ctrl then
+                    Decode.succeed Cut
 
-                    -- Selection
-                    ( "escape", False, False, False ) ->
-                        Decode.succeed ClearSelection
+                else if key == "v" && ctrl then
+                    Decode.succeed Paste
 
-                    ( "delete", False, False, False ) ->
-                        Decode.succeed ClearSelection
+                else if key == "escape" || key == "delete" || key == "backspace" then
+                    Decode.succeed ClearSelection
 
-                    ( "backspace", False, False, False ) ->
-                        Decode.succeed ClearSelection
-
-                    -- Default: no message
-                    _ ->
-                        Decode.succeed NoOp
+                else
+                    Decode.succeed NoOp
             )

@@ -7,10 +7,12 @@ module Main exposing (main)
 -}
 
 import Browser
+import Browser.Events
 import Html exposing (Html)
 import Model exposing (Model)
 import Msg exposing (Msg(..))
 import Update exposing (update)
+import Utils.Keyboard
 import View exposing (view)
 
 
@@ -30,4 +32,4 @@ main =
 -}
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-    Sub.none
+    Browser.Events.onKeyDown Utils.Keyboard.keyDecoder

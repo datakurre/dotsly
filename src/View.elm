@@ -55,6 +55,7 @@ viewToolbar model =
         [ viewToolSelector model
         , viewShapeSelector model
         , viewGridSizeControls model
+        , viewActions model
         , viewColorInfo model
         , viewDebugInfo model
         ]
@@ -152,6 +153,65 @@ viewGridSizeControls model =
                 , style "cursor" "pointer"
                 ]
                 [ text "Resize Grid" ]
+            ]
+        ]
+
+
+{-| Actions (undo/redo, clipboard).
+-}
+viewActions : Model -> Html Msg
+viewActions model =
+    div []
+        [ div [ style "font-weight" "bold", style "margin-bottom" "8px" ] [ text "Actions" ]
+        , div [ style "display" "flex", style "flex-direction" "column", style "gap" "4px" ]
+            [ button
+                [ onClick Undo
+                , style "padding" "8px"
+                , style "background" "#fff"
+                , style "border" "1px solid #ccc"
+                , style "cursor" "pointer"
+                ]
+                [ text "Undo (Ctrl+Z)" ]
+            , button
+                [ onClick Redo
+                , style "padding" "8px"
+                , style "background" "#fff"
+                , style "border" "1px solid #ccc"
+                , style "cursor" "pointer"
+                ]
+                [ text "Redo (Ctrl+Shift+Z)" ]
+            , button
+                [ onClick Copy
+                , style "padding" "8px"
+                , style "background" "#fff"
+                , style "border" "1px solid #ccc"
+                , style "cursor" "pointer"
+                ]
+                [ text "Copy (Ctrl+C)" ]
+            , button
+                [ onClick Cut
+                , style "padding" "8px"
+                , style "background" "#fff"
+                , style "border" "1px solid #ccc"
+                , style "cursor" "pointer"
+                ]
+                [ text "Cut (Ctrl+X)" ]
+            , button
+                [ onClick Paste
+                , style "padding" "8px"
+                , style "background" "#fff"
+                , style "border" "1px solid #ccc"
+                , style "cursor" "pointer"
+                ]
+                [ text "Paste (Ctrl+V)" ]
+            , button
+                [ onClick ClearSelection
+                , style "padding" "8px"
+                , style "background" "#fff"
+                , style "border" "1px solid #ccc"
+                , style "cursor" "pointer"
+                ]
+                [ text "Clear (Del)" ]
             ]
         ]
 
