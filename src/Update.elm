@@ -6,9 +6,12 @@ module Update exposing (update)
 
 -}
 
+import Data.Design
 import File exposing (File)
+import Json.Decode as Decode
 import Model exposing (ClipboardData, Model, Selection)
 import Msg exposing (Msg(..))
+import Task
 import Types.Shape exposing (Grid, GridCell, Rotation(..), ShapeType)
 import Types.Tool exposing (ToolType(..))
 import Utils.Clipboard as Clipboard
@@ -308,16 +311,28 @@ update msg model =
 
         -- File Operations
         SaveDesign ->
-            -- TODO: Implement save functionality
-            ( model, Cmd.none )
+            ( model, Data.Design.saveDesign model )
 
         LoadDesign file ->
-            -- TODO: Implement load functionality
-            ( model, Cmd.none )
+            ( model
+            , Task.perform DesignLoaded (File.toString file)
+            )
 
-        DesignLoaded data ->
-            -- TODO: Implement design loading
-            ( model, Cmd.none )
+        DesignLoaded jsonString ->
+            case Decode.decodeString Data.Design.decodeDesign jsonString of
+                Ok ( width, height, grid ) ->
+                    ( { model
+                        | gridWidth = width
+                        , gridHeight = height
+                        , grid = grid
+                        , widthInput = String.fromInt width
+                        , heightInput = String.fromInt height
+                      }
+                    , Cmd.none
+                    )
+
+                Err _ ->
+                    ( model, Cmd.none )
 
         -- UI
         ToggleToolbar ->

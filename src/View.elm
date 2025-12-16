@@ -8,9 +8,11 @@ module View exposing (view)
 
 import Components.ColorPicker
 import Components.DrawingBoard
+import File
 import Html exposing (Html, button, div, input, label, text)
-import Html.Attributes exposing (class, style, type_, value)
-import Html.Events exposing (onClick, onInput)
+import Html.Attributes exposing (accept, class, style, type_, value)
+import Html.Events exposing (on, onClick, onInput)
+import Json.Decode as Decode
 import Model exposing (Model)
 import Msg exposing (Msg(..))
 import Types.Shape
@@ -56,6 +58,7 @@ viewToolbar model =
         [ viewToolSelector model
         , viewShapeSelector model
         , viewGridSizeControls model
+        , viewFileOperations model
         , viewActions model
         , Components.ColorPicker.view model
         , viewColorInfo model
@@ -157,6 +160,50 @@ viewGridSizeControls model =
                 [ text "Resize Grid" ]
             ]
         ]
+
+
+{-| File operations (save/load).
+-}
+viewFileOperations : Model -> Html Msg
+viewFileOperations model =
+    div []
+        [ div [ style "font-weight" "bold", style "margin-bottom" "8px" ] [ text "File" ]
+        , div [ style "display" "flex", style "flex-direction" "column", style "gap" "4px" ]
+            [ button
+                [ onClick SaveDesign
+                , style "padding" "8px"
+                , style "background" "#4CAF50"
+                , style "color" "#fff"
+                , style "border" "none"
+                , style "cursor" "pointer"
+                ]
+                [ text "Save Design" ]
+            , label
+                [ style "padding" "8px"
+                , style "background" "#2196F3"
+                , style "color" "#fff"
+                , style "border" "none"
+                , style "cursor" "pointer"
+                , style "text-align" "center"
+                ]
+                [ text "Load Design"
+                , input
+                    [ type_ "file"
+                    , accept ".json"
+                    , on "change" (Decode.map LoadDesign fileDecoder)
+                    , style "display" "none"
+                    ]
+                    []
+                ]
+            ]
+        ]
+
+
+{-| Decoder for file input.
+-}
+fileDecoder : Decode.Decoder File.File
+fileDecoder =
+    Decode.at [ "target", "files", "0" ] File.decoder
 
 
 {-| Actions (undo/redo, clipboard).
