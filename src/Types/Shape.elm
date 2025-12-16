@@ -2,7 +2,7 @@ module Types.Shape exposing
     ( ShapeType(..)
     , GridCell
     , Grid
-    , Rotation
+    , Rotation(..)
     , emptyCell
     , rotationToDegrees
     , degreesToRotation

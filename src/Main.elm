@@ -11,6 +11,7 @@ import Html exposing (Html, div, text)
 import Html.Attributes exposing (style)
 import Model exposing (Model)
 import Msg exposing (Msg(..))
+import Update exposing (update)
 
 
 {-| Main application entry point.
@@ -23,19 +24,6 @@ main =
         , update = update
         , subscriptions = subscriptions
         }
-
-
-{-| Update function - handles all state changes.
--}
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
-    case msg of
-        NoOp ->
-            ( model, Cmd.none )
-
-        _ ->
-            -- TODO: Implement all message handlers
-            ( model, Cmd.none )
 
 
 {-| View function - renders the application.
